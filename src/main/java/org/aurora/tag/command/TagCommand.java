@@ -32,7 +32,8 @@ public class TagCommand {
 	
 	private static void handleJoin(Player player) {
 		if(TagManager.addPlayer(player)) {
-			
+			//@config
+			player.performCommand("warp taglobby");
 		} else
 			player.sendMessage("This current game of Tag is already full. Please wait until it ends before reentering.");
 	}
