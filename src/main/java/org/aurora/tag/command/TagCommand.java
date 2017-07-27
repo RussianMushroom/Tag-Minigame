@@ -23,5 +23,17 @@ public class TagCommand {
 	private static void notEnoughPermission(CommandSender sender) {
 		sender.sendMessage("You do not have the proper permissions to execute this command!");
 	}
+	
+	private static void displayHelpMenu(CommandSender sender) {
+		sender.sendMessage(String.format(
+				"%s\n%s\n%s\n\n%s\n%s\n\n%s\n",
+				"=====================",
+				"----Tag-Minigame----",
+				"=====================",
+				"/tag join\t Join the tag lobby.",
+				"/tag start \t Force start the tag minigame",
+				"====================="
+				));
+	}
 
 }
