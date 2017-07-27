@@ -1,9 +1,9 @@
-package org.aurora.tag.listener;
+package org.aurora.Tag.Listener;
 
 import org.bukkit.entity.EntityType;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
-public class taglistener 
+public class TagListener 
 {
 	public void onPlayerInteractEntityEvent(PlayerInteractEntityEvent event)
 	{
