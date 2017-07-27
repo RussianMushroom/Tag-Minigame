@@ -1,0 +1,6 @@
+name: Tag
+version: 0.0.1
+main: org.aurora.tag.Tag
+commands:
+  tag:
+   description: Tag command.
