@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerVelocityEvent;
 
 /**
  * 
@@ -13,7 +12,6 @@ import org.bukkit.event.player.PlayerVelocityEvent;
  */
 public class TagManager {
 
-	//@config
 	private static final int MAX_PLAYERS = 10;
 	private static List<Player> joinedPlayers = new ArrayList<>();
 	private static List<Player> votedPlayers = new ArrayList<>();
@@ -37,7 +35,9 @@ public class TagManager {
 	}
 	
 	private static void checkStartTag() {
-		if(votedPlayers.size() == joinedPlayers.size())
+		if(votedPlayers.size() == joinedPlayers.size()) {
+			
+		}
 	}
 	
 	// Getters and Setters
