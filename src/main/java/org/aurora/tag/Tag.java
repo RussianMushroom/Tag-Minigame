@@ -2,6 +2,7 @@ package org.aurora.tag;
 
 import org.aurora.tag.command.TagCommand;
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.listener.TagListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -16,6 +17,8 @@ public class Tag extends JavaPlugin {
 	public void onEnable() {
 		// Create config file
 		ConfigLoader.load(this);
+		
+		getServer().getPluginManager().registerEvents(new TagListener(), this);
 		super.onEnable();
 	}
 	
