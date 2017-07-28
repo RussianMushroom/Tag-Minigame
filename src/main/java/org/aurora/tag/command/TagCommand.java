@@ -1,8 +1,11 @@
 package org.aurora.tag.command;
 
+import javax.swing.text.html.parser.Entity;
+
 import org.aurora.tag.TagManager;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 /**

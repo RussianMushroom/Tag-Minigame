@@ -1,16 +1,18 @@
-package org.aurora.Tag.Listener;
+package org.aurora.tag.listener;
 
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 
 public class TagListener 
 {
 	public void onPlayerInteractEntityEvent(PlayerInteractEntityEvent event)
 	{
-		EntityType eType = event.getType();
-		if (eType.equals(PLAYER))
+		
+		if (event.getRightClicked().getType() == EntityType.PLAYER)
 		{
-		getName.performCommand("warp tagrip");//@config
+		Player player = (Player) event.getRightClicked();
+		player.performCommand("warp whereever");
 	    }
 	}      
 }
