@@ -3,8 +3,8 @@ package org.aurora.tag.command;
 import org.aurora.tag.Tag;
 import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.util.InventoryManager;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -24,38 +24,60 @@ public class TagCommand {
 		setDefaults();
 		
 		// Check if the user has the necessary permissions
-		if(args.length <= 2 && args.length > 0) {
+		if(args.length == 0 || args.length > 2) {
 			displayHelpMenu(sender);
 		} else {
 			if(!(sender instanceof ConsoleCommandSender))
 				switch (args[0].toLowerCase()) {
+				// /tag join & /tag join confirm
 				case "join":
-					if(args.length == 2) {
-						if(args[1].equalsIgnoreCase("confirm") && sender.hasPermission("tag.join"))
-							handleJoin((Player) sender);
+					if(sender.hasPermission("tag.join")) {
+						if(TagManager.getJoinedPlayers().contains((Player) sender)
+								&& !TagManager.getVotedPlayers().contains((Player) sender)
+								&& !TagManager.isActive())
+							sender.sendMessage(ChatColor.GOLD
+									+ "You are already in the Lobby, please vote to start the game!");
+						else if(TagManager.getVotedPlayers().contains((Player) sender)
+								&& !TagManager.isActive())
+							sender.sendMessage(ChatColor.GOLD
+									+ "You have already voted. Please wait for the others to vote before the game starts!");
+						else if(TagManager.getVotedPlayers().contains((Player) sender)
+								&& !TagManager.isActive())
+							sender.sendMessage(ChatColor.GOLD
+									+ "You are already in an active game of Tag. To leave this game, use /tag leave.");
+						else if(TagManager.isActive())
+							sender.sendMessage(ChatColor.GOLD
+									+ "There is already a game of Tag running. Please wait for it to end before joining a new game.");
 						else {
-							if(sender.hasPermission("tag.join"))
+							if(args.length == 2) {
+								if(args[1].equalsIgnoreCase("confirm"))
+									handleJoin((Player) sender);
+							} else {
 								if(InventoryManager.isEmpty((Player) sender))
 									handleJoin((Player) sender);
 								else
-									sender.sendMessage("Please clear your inventory. Upon clearing it, use /tag join confirm.");
-							else
-								notEnoughPermission(sender);
+									sender.sendMessage(ChatColor.GOLD
+											+ "Please clear your inventory. Upon clearing it, use /tag join confirm.");
+							}
 						}
-					}		
+					} else
+						notEnoughPermission(sender);		
 					break;
-				case "start":
-					if(sender.hasPermission("tag.start"))
-						Bukkit.broadcastMessage(lobbyWarp); // Activate Tag game
-					else
+					// /tag start
+				case "start":	
+					if(sender.hasPermission("tag.start")) {
+						GameCenter.start();
+					} else
 						notEnoughPermission(sender);
 					break;
+					// /tag help
 				case "help":
 					displayHelpMenu(sender);
 					break;	
 				}
 			else
-				sender.sendMessage("This command cannot be used from the console!");
+				sender.sendMessage(ChatColor.GOLD
+						+ "This command cannot be used from the console!");
 		}
 		
 	}
@@ -66,14 +88,18 @@ public class TagCommand {
 	
 	private static void handleJoin(Player player) {
 		if(TagManager.addPlayer(player)) {
+			// Simulate voting
+			TagManager.vote(player);
 			player.performCommand("warp " + lobbyWarp);
-			player.sendMessage("You have been warped to the Lobby.");
+			player.sendMessage(ChatColor.GOLD + "You have been warped to the Lobby.");
 		} else
-			player.sendMessage("This current game of Tag is already full. Please wait until it ends before reentering.");
+			player.sendMessage(ChatColor.GOLD 
+					+ "This current game of Tag is already full. Please wait until it ends before reentering.");
 	}
 	
 	private static void notEnoughPermission(CommandSender sender) {
-		sender.sendMessage("You do not have the proper permissions to execute this command!");
+		sender.sendMessage(ChatColor.GOLD 
+				+ "You do not have the proper permissions to execute this command!");
 	} 
 	
 	private static void displayHelpMenu(CommandSender sender) {

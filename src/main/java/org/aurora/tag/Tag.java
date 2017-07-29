@@ -3,7 +3,6 @@ package org.aurora.tag;
 import org.aurora.tag.command.TagCommand;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.listener.TagListener;
-import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;

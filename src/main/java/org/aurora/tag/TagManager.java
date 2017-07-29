@@ -19,7 +19,7 @@ public class TagManager {
 	private static boolean isActive = false;
 	
 	public static boolean addPlayer(Player player) {
-		if(!(joinedPlayers.size() + 1 > MAX_PLAYERS))
+		if(!(joinedPlayers.size() + 1 > MAX_PLAYERS) && !isActive)
 			joinedPlayers.add(player);
 		else
 			return false;
@@ -39,6 +39,20 @@ public class TagManager {
 		if(votedPlayers.size() == joinedPlayers.size()) {
 			
 		}
+	}
+	
+	public static void clearAll() {
+		joinedPlayers.clear();
+		votedPlayers.clear();
+		isActive = false;
+	}
+	
+	public static void activate() {
+		isActive = true;
+	}
+	
+	public static void deactivate() {
+		isActive = false;
 	}
 	
 	// Getters and Setters

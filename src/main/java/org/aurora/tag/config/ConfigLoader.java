@@ -38,7 +38,6 @@ public class ConfigLoader {
 		
 		// Allowed weapons    
 		setConfigAndBackup(fConfig, "Tag.Tools.Baton", "STICK");
-		setConfigAndBackup(fConfig, "Tag.Tools.Bow", "BOW");
 		setConfigAndBackup(fConfig, "Tag.Tools.ArrowCount", Integer.valueOf(1));
 		                       
 		// Armour colour       

@@ -1,8 +1,10 @@
 package org.aurora.tag.util;
 
+import java.util.Arrays;
+
 import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
-import org.bukkit.Color;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -14,9 +16,6 @@ import org.bukkit.inventory.ItemStack;
  *
  */
 public class InventoryManager {
-	
-	private static Material baton = Material.STICK;
-	private static Color armourColour = Color.fromRGB(50, 50, 50);
 
 	public static void clearPlayerInventory() {
 		TagManager.getVotedPlayers().forEach(player -> {
@@ -25,21 +24,30 @@ public class InventoryManager {
 	}
 	
 	public static boolean isEmpty(Player player) {
-		return player.getInventory().getContents().length == 0;
+		return Arrays.asList(player.getInventory().getContents())
+				.stream()
+				.filter(iStack -> {
+					if(iStack == null || iStack.getType() == Material.AIR)
+						return false;
+					else
+						return true;
+				})
+				.count() == 0;
 	}
 	
 	public static void setTagBaton() {
-		baton = Material.valueOf(ConfigLoader.getDefault("Tag.Tools.Baton"));
+		Material baton = Material.valueOf(ConfigLoader.getDefault("Tag.Tools.Baton"));
 		ItemStack iStack = new ItemStack(baton);
 		
-		iStack.getItemMeta().setDisplayName("Baton");
+		iStack.getItemMeta().setLocalizedName("Baton");
 		
 		TagManager.getVotedPlayers().forEach(player -> {
-			player.getInventory().setItem(0, iStack);
+			player.getInventory().addItem(iStack);
 		});
 	}
 	
 	// FIXME
+	/*
 	private static void setArmor() {
 		Color armourColour = Color.fromRGB(
 				Integer.parseInt(ConfigLoader.getDefault("Tag.Armour.Colour.R")),
@@ -58,5 +66,19 @@ public class InventoryManager {
 			player.getInventory().setLeggings(leg);
 			player.getInventory().setBoots(boot);
 		});
+	}
+	*/
+	
+	public static void setTagBow() {
+		Material bow = Material.BOW;
+		Material arrow = Material.ARROW;
+		
+		TagManager.getVotedPlayers().forEach(player -> {
+			player.getInventory().addItem(new ItemStack(bow));
+			player.getInventory().addItem(new ItemStack(
+					arrow, 
+					Integer.parseInt(ConfigLoader.getDefault("Tag.Tools.ArrowCount"))));
+		});
+		
 	}
 }
