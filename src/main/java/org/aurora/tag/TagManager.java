@@ -3,6 +3,7 @@ package org.aurora.tag;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.aurora.tag.config.ConfigLoader;
 import org.bukkit.entity.Player;
 
 /**
@@ -12,7 +13,7 @@ import org.bukkit.entity.Player;
  */
 public class TagManager {
 
-	private static final int MAX_PLAYERS = 10;
+	private static final int MAX_PLAYERS = Integer.parseInt(ConfigLoader.getDefault("Tag.MaxPlayers"));
 	private static List<Player> joinedPlayers = new ArrayList<>();
 	private static List<Player> votedPlayers = new ArrayList<>();
 	private static boolean isActive = false;
@@ -44,6 +45,10 @@ public class TagManager {
 	
 	public static List<Player> getJoinedPlayers() {
 		return joinedPlayers;
+	}
+	
+	public static List<Player> getVotedPlayers() {
+		return votedPlayers;
 	}
 	
 	public static boolean isActive() {

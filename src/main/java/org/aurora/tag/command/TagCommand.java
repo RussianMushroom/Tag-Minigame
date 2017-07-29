@@ -1,16 +1,13 @@
 package org.aurora.tag.command;
 
-import java.io.IOException;
-
 import org.aurora.tag.Tag;
 import org.aurora.tag.TagManager;
-import org.aurora.tag.config.ConfigFile;
+import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.util.InventoryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 
 /**
@@ -20,27 +17,36 @@ import org.bukkit.entity.Player;
  */
 public class TagCommand {
 	
-	private static String lobbyWarp = "taglobby";
+	private static String lobbyWarp;
 	
 	public static void handle(CommandSender sender, String[] args, Tag plugin) {
 		// Set defaults from config file
-		setDefaults(plugin);
+		setDefaults();
 		
 		// Check if the user has the necessary permissions
-		if(args.length != 1) {
+		if(args.length <= 2 && args.length > 0) {
 			displayHelpMenu(sender);
 		} else {
 			if(!(sender instanceof ConsoleCommandSender))
 				switch (args[0].toLowerCase()) {
 				case "join":
-					if(sender.hasPermission("tag.join"))
-						handleJoin((Player) sender);
-					else
-						notEnoughPermission(sender);
+					if(args.length == 2) {
+						if(args[1].equalsIgnoreCase("confirm") && sender.hasPermission("tag.join"))
+							handleJoin((Player) sender);
+						else {
+							if(sender.hasPermission("tag.join"))
+								if(InventoryManager.isEmpty((Player) sender))
+									handleJoin((Player) sender);
+								else
+									sender.sendMessage("Please clear your inventory. Upon clearing it, use /tag join confirm.");
+							else
+								notEnoughPermission(sender);
+						}
+					}		
 					break;
 				case "start":
 					if(sender.hasPermission("tag.start"))
-						Bukkit.broadcastMessage("okay");// Activate Tag game
+						Bukkit.broadcastMessage(lobbyWarp); // Activate Tag game
 					else
 						notEnoughPermission(sender);
 					break;
@@ -54,26 +60,14 @@ public class TagCommand {
 		
 	}
 	
-	private static void setDefaults(Tag plugin) {
-		FileConfiguration fConfig = plugin.getConfig();
-		
-		try {
-			fConfig.load(ConfigFile.getConfigFile());
-			
-			// Set defaults
-			lobbyWarp = fConfig.getString("Tag.Arena.Lobby");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (InvalidConfigurationException e) {
-			e.printStackTrace();
-		}
+	private static void setDefaults() {
+		lobbyWarp = ConfigLoader.getDefault("Tag.Arena.Lobby");
 	}
 	
 	private static void handleJoin(Player player) {
 		if(TagManager.addPlayer(player)) {
-			//@config
-			player.sendMessage("You have been warped to the Lobby.");
 			player.performCommand("warp " + lobbyWarp);
+			player.sendMessage("You have been warped to the Lobby.");
 		} else
 			player.sendMessage("This current game of Tag is already full. Please wait until it ends before reentering.");
 	}
