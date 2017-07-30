@@ -22,9 +22,18 @@ public class GameCenter {
 		// Clear all inventories and apply items 
 		InventoryManager.clearPlayerInventory();
 		
-		// These will be added later when user taps on a sign
 		InventoryManager.setTagBaton();
-		InventoryManager.setTagBow();
+		InventoryManager.setArmour();
+	}
+	
+	public static void stop() {
+		Bukkit.broadcastMessage(ChatColor.GOLD
+				+ "This game of Tag has ended! You may now join a new game.");
+		
+		// Set game to inactive
+		TagManager.deactivate();
+		
+		InventoryManager.clearPlayerInventory();
 	}
 	
 	

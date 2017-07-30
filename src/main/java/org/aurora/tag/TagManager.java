@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.game.GameCenter;
 import org.bukkit.entity.Player;
 
 /**
@@ -29,19 +30,18 @@ public class TagManager {
 	public static boolean vote(Player player) {
 		if(!votedPlayers.contains(player)) {
 			votedPlayers.add(player);
-			checkStartTag();
 			return true;
 		}
 		return false;
 	}
 	
-	private static void checkStartTag() {
+	public static void checkStartTag() {
 		if(votedPlayers.size() == joinedPlayers.size()) {
-			
+			GameCenter.start();
 		}
 	}
 	
-	public static void clearAll() {
+	private static void clearAll() {
 		joinedPlayers.clear();
 		votedPlayers.clear();
 		isActive = false;
@@ -52,7 +52,27 @@ public class TagManager {
 	}
 	
 	public static void deactivate() {
-		isActive = false;
+		clearAll();
+	}
+	
+	public static  void removePlayer(Player player) {
+		joinedPlayers.remove(player);
+		if(votedPlayers.contains(player))
+			votedPlayers.remove(player);
+		
+		// TODO:  Implement a method to warp player back to previous location
+		// and reset their inventory
+		
+		// Check if game is active and is last person to leave
+		if(isActive && votedPlayers.isEmpty())
+			GameCenter.stop();
+	}
+	
+	public static void migrate() {
+		joinedPlayers.forEach(player -> {
+			if(!votedPlayers.contains(player))
+				votedPlayers.add(player);
+		});
 	}
 	
 	// Getters and Setters
@@ -69,5 +89,8 @@ public class TagManager {
 		return isActive;
 	}
 	
+	public static int getMaxPlayers() {
+		return MAX_PLAYERS;
+	}
 	
 }

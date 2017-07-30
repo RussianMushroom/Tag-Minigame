@@ -4,3 +4,15 @@ main: org.aurora.tag.Tag
 commands:
   tag:
    description: Tag command.
+   
+permissions:
+  tag.start:
+    default: op
+  tag.stop:
+    default: op
+  tag.join:
+    default: false
+  tag.help:
+    default: false
+  tag.leave:
+    default: false

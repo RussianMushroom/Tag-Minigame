@@ -39,11 +39,10 @@ public class ConfigLoader {
 		// Allowed weapons    
 		setConfigAndBackup(fConfig, "Tag.Tools.Baton", "STICK");
 		setConfigAndBackup(fConfig, "Tag.Tools.ArrowCount", Integer.valueOf(1));
-		                       
-		// Armour colour       
-		setConfigAndBackup(fConfig, "Tag.Armour.Colour.R", Integer.valueOf(50));
-		setConfigAndBackup(fConfig, "Tag.Armour.Colour.G", Integer.valueOf(50));
-		setConfigAndBackup(fConfig, "Tag.Armour.Colour.B", Integer.valueOf(50));
+		
+		// Sign text
+		setConfigAndBackup(fConfig, "Tag.Sign.SignToVote", "[VOTE]");
+		setConfigAndBackup(fConfig, "Tag.Sign.SignToBow", "[UPGRADE]");
 		
 		
 		try {
