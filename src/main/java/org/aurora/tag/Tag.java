@@ -2,6 +2,7 @@ package org.aurora.tag;
 
 import org.aurora.tag.command.TagCommand;
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.listener.PlayerListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -24,6 +25,7 @@ public class Tag extends JavaPlugin {
 	
 	@Override
 	public void onDisable() {
+		GameCenter.stop();
 		super.onDisable();
 	}
 
