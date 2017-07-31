@@ -5,7 +5,9 @@ import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.util.InventoryManager;
+import org.aurora.tag.util.Timer;
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -32,25 +34,25 @@ public class TagCommand {
 				case "join":
 					if(sender instanceof ConsoleCommandSender)
 						sender.sendMessage(ChatColor.GOLD
-								+ "This command cannot be used from the console!");
+								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
 					else {
 						if(sender.hasPermission("tag.join")) {
 							if(TagManager.getJoinedPlayers().contains((Player) sender)
 									&& !TagManager.getVotedPlayers().contains((Player) sender)
 									&& !TagManager.isActive())
 								sender.sendMessage(ChatColor.GOLD
-										+ "You are already in the Lobby, please vote to start the game!");
+										+ ConfigLoader.getDefault("Tag.Strings.AlreadyInLobby"));
 							else if(TagManager.getVotedPlayers().contains((Player) sender)
 									&& !TagManager.isActive())
 								sender.sendMessage(ChatColor.GOLD
-										+ "You have already voted. Please wait for the others to vote before the game starts!");
+										+ ConfigLoader.getDefault("Tag.Strings.PlayerAlreadyVote"));
 							else if(TagManager.getVotedPlayers().contains((Player) sender)
 									&& TagManager.isActive())
 								sender.sendMessage(ChatColor.GOLD
-										+ "You are already in an active game of Tag. To leave this game, use /tag leave.");
+										+ ConfigLoader.getDefault("Tag.Strings.AlreadyInActiveGame"));
 							else if(TagManager.isActive())
 								sender.sendMessage(ChatColor.GOLD
-										+ "There is already a game of Tag running. Please wait for it to end before joining a new game.");
+										+ ConfigLoader.getDefault("Tag.Strings.AlreadyActiveGameWait"));
 							else {
 								if(args.length == 2) {
 									if(args[1].equalsIgnoreCase("confirm"))
@@ -60,7 +62,7 @@ public class TagCommand {
 										handleJoin((Player) sender);
 									else
 										sender.sendMessage(ChatColor.GOLD
-												+ "Please clear your inventory. Upon clearing it, use /tag join confirm.");
+												+ ConfigLoader.getDefault("Tag.Strings.PlayerClearInventory"));
 								}
 							}
 						} else
@@ -72,10 +74,10 @@ public class TagCommand {
 					if(sender.hasPermission("tag.start")) {
 						if(TagManager.isActive())
 							sender.sendMessage(ChatColor.GOLD
-									+ "There is already a game of Tag running.");
+									+ ConfigLoader.getDefault("Tag.Strings.AlreadyActive"));
 						else {
 							TagManager.migrate();
-							GameCenter.start();	
+							Timer.delayStart();
 						}
 					} else
 						notEnoughPermission(sender);
@@ -92,17 +94,17 @@ public class TagCommand {
 				case "leave":
 					if(sender instanceof ConsoleCommandSender)
 						sender.sendMessage(ChatColor.GOLD
-								+ "This command cannot be used from the console!");
+								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
 					else {
 						if(sender.hasPermission("tag.leave")) {
 							if(!TagManager.getJoinedPlayers().contains((Player) sender))
 								sender.sendMessage(ChatColor.GOLD
-										+ "You are not in a Tag game.");
+										+ ConfigLoader.getDefault("Tag.Strings.PlayerNotInGame"));
 							else {
 								TagManager.removePlayer((Player) sender);
 								sender.sendMessage(ChatColor.GOLD
-										+ "You have left the Tag game. You will be warped to the Lobby.");
-								((Player) sender).performCommand("warp " + lobbyWarp);
+										+ ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"));
+								((Player) sender).performCommand("back");
 							}
 						} else
 							notEnoughPermission(sender);
@@ -113,7 +115,7 @@ public class TagCommand {
 					if(sender.hasPermission("tag.stop")) {
 						if(!TagManager.isActive())
 							sender.sendMessage(ChatColor.GOLD
-									+ "There is no game of Tag running.");
+									+ ConfigLoader.getDefault("Tag.Strings.NotRunning"));
 						else
 							GameCenter.stop();
 					} else
@@ -129,16 +131,21 @@ public class TagCommand {
 	
 	private static void handleJoin(Player player) {
 		if(TagManager.addPlayer(player)) {
+			if(player.getGameMode() != GameMode.SURVIVAL) {
+				player.sendMessage(ChatColor.GOLD
+						+ ConfigLoader.getDefault("Tag.Strings.PlayerChangeGameMode"));
+				player.setGameMode(GameMode.SURVIVAL);
+			}
 			player.performCommand("warp " + lobbyWarp);
-			player.sendMessage(ChatColor.GOLD + "You have been warped to the Lobby.");
+			player.sendMessage(ChatColor.GOLD + ConfigLoader.getDefault("Tag.Strings.PlayerWarpLobby"));
 		} else
 			player.sendMessage(ChatColor.GOLD 
-					+ "This current game of Tag is already full. Please wait until it ends before reentering.");
+					+ ConfigLoader.getDefault("Tag.Strings.GameIsFull"));
 	}
 	
 	private static void notEnoughPermission(CommandSender sender) {
 		sender.sendMessage(ChatColor.GOLD 
-				+ "You do not have the proper permissions to execute this command!");
+				+ ConfigLoader.getDefault("Tag.Strings.NoPerm"));
 	} 
 	
 	private static void displayMenu(CommandSender sender) {

@@ -1,5 +1,5 @@
 name: Tag
-version: 0.0.1
+version: 0.6.0
 main: org.aurora.tag.Tag
 commands:
   tag:
@@ -11,8 +11,8 @@ permissions:
   tag.stop:
     default: op
   tag.join:
-    default: false
+    default: default
   tag.help:
-    default: false
+    default: default
   tag.leave:
-    default: false
+    default: default

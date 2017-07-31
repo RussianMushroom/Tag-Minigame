@@ -34,7 +34,7 @@ public class ConfigLoader {
 		                        
 		// Time limits          
 		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeTagStart", Integer.valueOf(150));
-		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeGetBow", Integer.valueOf(3600));
+		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeGetBow", Integer.valueOf(1800));
 		
 		// Allowed weapons    
 		setConfigAndBackup(fConfig, "Tag.Tools.Baton", "STICK");
@@ -43,6 +43,35 @@ public class ConfigLoader {
 		// Sign text
 		setConfigAndBackup(fConfig, "Tag.Sign.SignToVote", "[VOTE]");
 		setConfigAndBackup(fConfig, "Tag.Sign.SignToBow", "[UPGRADE]");
+		
+		// Externalise strings
+		setConfigAndBackup(fConfig, "Tag.Strings.NotifyPlayersGameStart", "This game of Tag is starting in %d seconds!");
+		setConfigAndBackup(fConfig, "Tag.Strings.LastPersonStanding", "Congratulations! You are the last person standing!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerTagPlayer", "Congratulations! You have tagged %s, they will be warped away. You are one step closer to winning!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerTaggedByPlayer", "You have been tagged by %s. That means it is gameover for you. Better luck next time!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerVote", "You have successfully voted.");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerAlreadyVote", "You have already voted. Please wait for the others to vote before the game starts!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerGetBow", "With great power, comes great responsibility!");
+		setConfigAndBackup(fConfig, "Tag.Strings.BowNotReady", "Be patient, it will be ready soon!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotTeleport", "You cannot teleport while you are in a Tag game. To leave this game, use /tag leave.");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotChangeGameMode", "You cannot change your game mode while you are in a Tag game. To leave this game, use /tag leave.");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerHasLeft", "%s has left the game.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GameStart", "A new game of Tag has been started. Please wait for this game to end before joining a new one.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GameStop", "This game of Tag has ended! You may now join a new game.");
+		setConfigAndBackup(fConfig, "Tag.Strings.BroadcastWinner", "[Tag] %s has defeated all his foes to win this game of Tag!");
+		setConfigAndBackup(fConfig, "Tag.Strings.ConsoleUser", "This command cannot be used from the console!");
+		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInLobby", "You are already in the Lobby, please vote to start the game!");
+		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInActiveGame", "You are already in an active game of Tag. To leave this game, use /tag leave.");
+		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyActiveGameWait", "There is already a game of Tag running. Please wait for it to end before joining a new game.");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerClearInventory", "Please clear your inventory. Upon clearing it, use /tag join confirm.");
+		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyActive", "There is already a game of Tag running.");
+		setConfigAndBackup(fConfig, "Tag.Strings.NotActive", "There is no game of Tag running.");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerChangeGameMode", "Changing your game mode to survival.");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerWarpLobby", "You have been warped to the Lobby.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GameIsFull", "This current game of Tag is already full. Please wait until it ends before rejoining.");
+		setConfigAndBackup(fConfig, "Tag.Strings.NoPerm", "You do not have the proper permissions to execute this command!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNotInGame", "You are not in a Tag game.");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerLeaves", "You have left the Tag game. You will be warped back to your last known location.");
 		
 		
 		try {

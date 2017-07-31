@@ -72,10 +72,14 @@ public class InventoryManager {
 		Material bow = Material.BOW;
 		Material arrow = Material.ARROW;
 		
-		if(!Arrays.asList(player.getInventory().getContents()).contains(new ItemStack(bow)))
+		if(!player.getInventory().contains(Material.BOW))
 			player.getInventory().addItem(new ItemStack(bow));
 		player.getInventory().addItem(new ItemStack(
 				arrow, 
 				Integer.parseInt(ConfigLoader.getDefault("Tag.Tools.ArrowCount"))));
+	}
+	
+	public static void setWinnerReward(Player player) {
+		
 	}
 }

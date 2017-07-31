@@ -1,9 +1,11 @@
 package org.aurora.tag.game;
 
 import org.aurora.tag.TagManager;
+import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.util.InventoryManager;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 /**
  * 
@@ -14,10 +16,7 @@ public class GameCenter {
 	
 	public static void start() {
 		Bukkit.broadcastMessage(ChatColor.GOLD
-				+ "A new game of Tag has been started. Please wait for this game to end before joining a new one.");
-		
-		// Set game to active
-		TagManager.activate();
+				+ ConfigLoader.getDefault("Tag.Strings.GameStart"));
 		
 		// Clear all inventories and apply items 
 		InventoryManager.clearPlayerInventory();
@@ -28,13 +27,31 @@ public class GameCenter {
 	
 	public static void stop() {
 		Bukkit.broadcastMessage(ChatColor.GOLD
-				+ "This game of Tag has ended! You may now join a new game.");
+				+ ConfigLoader.getDefault("Tag.Strings.GameStop"));
 		
-		// Set game to inactive
+		// Clear inventories and set game to inactive
+		InventoryManager.clearPlayerInventory();
+		
 		TagManager.deactivate();
 		
-		InventoryManager.clearPlayerInventory();
 	}
 	
+	public static void registerWinner(Player player) {
+		// Warp all the users back to the Lounge and clear their inventories
+		TagManager.getJoinedPlayers().forEach(p -> {
+			p.performCommand("warp " + ConfigLoader.getDefault("Tag.Arena.Lobby"));
+		});
+		InventoryManager.clearPlayerInventory();
+		
+		// Broadcast the player's win to the server
+		Bukkit.broadcastMessage(ChatColor.GOLD
+				+ String.format(ConfigLoader.getDefault("Tag.Strings.BroadcastWinner"), player.getName()));
+		
+		// Give the winner their reward
+		InventoryManager.setWinnerReward(player);
+	
+		// Reopen the game
+		stop();
+	}
 	
 }
