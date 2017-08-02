@@ -162,7 +162,7 @@ public class InventoryManager {
 			playerReward.setItemMeta(swordMeta);
 		}
 		
-		player.getInventory().addItem(playerRewardSkull);
+		// player.getInventory().addItem(playerRewardSkull);
 		player.getInventory().addItem(playerReward);
 	}
 	
