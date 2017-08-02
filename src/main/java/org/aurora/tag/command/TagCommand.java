@@ -115,7 +115,7 @@ public class TagCommand {
 					if(sender.hasPermission("tag.stop")) {
 						if(!TagManager.isActive())
 							sender.sendMessage(ChatColor.GOLD
-									+ ConfigLoader.getDefault("Tag.Strings.NotRunning"));
+									+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
 						else
 							GameCenter.stop();
 					} else
@@ -136,7 +136,8 @@ public class TagCommand {
 						+ ConfigLoader.getDefault("Tag.Strings.PlayerChangeGameMode"));
 				player.setGameMode(GameMode.SURVIVAL);
 			}
-			player.performCommand("warp " + lobbyWarp);
+			
+			TagManager.legalWarp(lobbyWarp, player);
 			player.sendMessage(ChatColor.GOLD + ConfigLoader.getDefault("Tag.Strings.PlayerWarpLobby"));
 		} else
 			player.sendMessage(ChatColor.GOLD 

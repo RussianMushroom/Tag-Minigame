@@ -10,7 +10,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 /**
  * @author RussianMushroom
- *
  */
 public class Tag extends JavaPlugin {
 	

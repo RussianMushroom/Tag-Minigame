@@ -12,7 +12,7 @@ import org.bukkit.Bukkit;
  */
 public class ConfigFile {
 
-	private static final Path CONFIG_PATH = new File("plugins/TagMinigame/").toPath();
+	private static final Path CONFIG_PATH = new File("plugins/Tag/").toPath();
 	public static final String CONFIG = "config.yml";
 	
 	public static Path getConfigPath() {

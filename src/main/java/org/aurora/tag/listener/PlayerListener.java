@@ -8,6 +8,7 @@ import org.aurora.tag.util.Timer;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Entity;
@@ -36,7 +37,8 @@ public class PlayerListener implements Listener {
 			
 			if(TagManager.getVotedPlayers().contains(tagger)
 					&& TagManager.getVotedPlayers().contains(tagged)
-					&& TagManager.isActive()) {
+					&& TagManager.isActive()
+					&& !Timer.isGrace()) {
 				// Check if tagger used stick
 				if(tagger.getInventory().getItemInMainHand().getType() == Material.STICK) {
 					// Add check to see if everyone has been tagged
@@ -51,6 +53,7 @@ public class PlayerListener implements Listener {
 								+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"), 
 										tagged.getName()));
 					
+					tagged.playSound(tagged.getLocation(), Sound.ENTITY_GHAST_SHOOT, 10, 1);
 					TagManager.addRip(tagged);
 					tagged.sendMessage(ChatColor.GOLD
 							+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTaggedByPlayer"), 
@@ -91,11 +94,11 @@ public class PlayerListener implements Listener {
 					else if (sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToBow"))
 							&& TagManager.isActive()
 							&& TagManager.getVotedPlayers().contains(player)) {
-						if(Timer.bowIsActive()) {
-							Timer.startBowTimer();
+						if(Timer.upgradeIsActive()) {
+							Timer.startUpgradeTimer();
 							player.sendMessage(ChatColor.GOLD
-									+ ConfigLoader.getDefault("Tag.Strings.PlayerGetBow"));
-							InventoryManager.setTagBow(player);
+									+ ConfigLoader.getDefault("Tag.Strings.TicksBeforeUpgrade"));
+							InventoryManager.setUpgrade(player);
 						}
 						else
 							player.sendMessage(ChatColor.GOLD
@@ -110,17 +113,18 @@ public class PlayerListener implements Listener {
 	@EventHandler
 	public void OnPlayerTeleportEvent(PlayerTeleportEvent event) {
 		if(TagManager.getJoinedPlayers().contains(event.getPlayer())) {
-			event.setCancelled(true);
-			event.getPlayer().sendMessage(ChatColor.GOLD
-					+ ConfigLoader.getDefault("Tag.Strings.PlayerCannotTeleport"));
+			if(!TagManager.canWarp()) {
+				event.setCancelled(true);
+				event.getPlayer().sendMessage(ChatColor.GOLD
+						+ ConfigLoader.getDefault("Tag.Strings.PlayerCannotTeleport"));
+			}
+			TagManager.prohibitWarp();
 		}
 	}
 	
 	// Disable game mode-switching while in the event
 	@EventHandler
 	public void onPlayerGameModeChangeEvent(PlayerGameModeChangeEvent event) {
-		// FIXME Inteferes with warping
-		
 		if(TagManager.getJoinedPlayers().contains(event.getPlayer())) {
 			if(event.getNewGameMode() != GameMode.SURVIVAL) {
 				event.setCancelled(true);
@@ -139,14 +143,16 @@ public class PlayerListener implements Listener {
 			TagManager.removePlayer(event.getPlayer());
 	}
 	
-	// Die
+	// Die (Special case. Here they are just sent to tagrip to wait for the game to end.)
 	@EventHandler
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		if(event.getEntity() instanceof Player) {
 			Player player = (Player) event.getEntity();
 			
-			if(TagManager.getJoinedPlayers().contains(player))
-				TagManager.removePlayer(player);
+			if(TagManager.getJoinedPlayers().contains(player)) {
+				TagManager.addRip(player); 
+				TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Rip"), player);
+			}
 		}
 	}
 	

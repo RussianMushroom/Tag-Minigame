@@ -30,14 +30,17 @@ public class ConfigLoader {
 		
 		// Default arenas
 		setConfigAndBackup(fConfig, "Tag.Arena.Lobby", "taglobby");
+		setConfigAndBackup(fConfig, "Tag.Arena.Arena", "tagarena");
 		setConfigAndBackup(fConfig, "Tag.Arena.Rip", "tagrip");
 		                        
 		// Time limits          
-		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeTagStart", Integer.valueOf(150));
-		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeGetBow", Integer.valueOf(1800));
+		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeTagStart", Integer.valueOf(140));
+		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeUpgrade", Integer.valueOf(400));
+		setConfigAndBackup(fConfig, "Tag.Timer.GracePeriod", Integer.valueOf(3000));
 		
 		// Allowed weapons    
 		setConfigAndBackup(fConfig, "Tag.Tools.Baton", "STICK");
+		setConfigAndBackup(fConfig, "Tag.Tools.BatonName", "Baton");
 		setConfigAndBackup(fConfig, "Tag.Tools.ArrowCount", Integer.valueOf(1));
 		
 		// Sign text
@@ -56,8 +59,8 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotTeleport", "You cannot teleport while you are in a Tag game. To leave this game, use /tag leave.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotChangeGameMode", "You cannot change your game mode while you are in a Tag game. To leave this game, use /tag leave.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerHasLeft", "%s has left the game.");
-		setConfigAndBackup(fConfig, "Tag.Strings.GameStart", "A new game of Tag has been started. Please wait for this game to end before joining a new one.");
-		setConfigAndBackup(fConfig, "Tag.Strings.GameStop", "This game of Tag has ended! You may now join a new game.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GameStart", "[Tag] A new game of Tag has been started. Please wait for this game to end before joining a new one.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GameStop", "[Tag] This game of Tag has ended! You may now join a new game.");
 		setConfigAndBackup(fConfig, "Tag.Strings.BroadcastWinner", "[Tag] %s has defeated all his foes to win this game of Tag!");
 		setConfigAndBackup(fConfig, "Tag.Strings.ConsoleUser", "This command cannot be used from the console!");
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInLobby", "You are already in the Lobby, please vote to start the game!");
@@ -71,7 +74,11 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.GameIsFull", "This current game of Tag is already full. Please wait until it ends before rejoining.");
 		setConfigAndBackup(fConfig, "Tag.Strings.NoPerm", "You do not have the proper permissions to execute this command!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNotInGame", "You are not in a Tag game.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GetUpgrade", "Upgrades are now active!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerLeaves", "You have left the Tag game. You will be warped back to your last known location.");
+		setConfigAndBackup(fConfig, "Tag.Strings.MinPlayers", "There need to be at least two players to start a game fo Tag.");
+		setConfigAndBackup(fConfig, "Tag.Strings.Grace", "You now have %d seconds to get into position. Good luck!");
+		setConfigAndBackup(fConfig, "Tag.Strings.NoGrace", "The grace period is over!");
 		
 		
 		try {

@@ -9,9 +9,8 @@ import org.aurora.tag.util.Timer;
 import org.bukkit.entity.Player;
 
 /**
- * 
+ * Deals with elements necessary for the Tag minigame.
  * @author RussianMushroom
- *
  */
 public class TagManager {
 
@@ -20,6 +19,7 @@ public class TagManager {
 	private static List<Player> votedPlayers = new ArrayList<>();
 	private static List<Player> ripPlayers = new ArrayList<>();
 	private static boolean isActive = false;
+	private static boolean canWarp = false;
 	
 	public static boolean addPlayer(Player player) {
 		if(!(joinedPlayers.size() + 1 > MAX_PLAYERS) && !isActive) {
@@ -43,6 +43,17 @@ public class TagManager {
 			ripPlayers.add(player);
 	}
 	
+	// Deal with warps so as to bypass the listener
+	public static void legalWarp(String warp, Player player) {
+		if(!canWarp)
+			canWarp = true;
+		player.performCommand("warp " + warp);
+	}
+	
+	public static void prohibitWarp() {
+		canWarp = false;
+	}
+	
 	// Switch the Tag game on and off
 	
 	public static void activate() {
@@ -62,7 +73,9 @@ public class TagManager {
 	
 	public static void checkStartTag() {
 		if(votedPlayers.size() == joinedPlayers.size()) {
-			Timer.delayStart();
+			// Need at least two players to start a game
+			if(!(votedPlayers.size() < 2))
+				Timer.delayStart();
 		}
 	}
 	
@@ -111,6 +124,10 @@ public class TagManager {
 	
 	public static int getMaxPlayers() {
 		return MAX_PLAYERS;
+	}
+	
+	public static boolean canWarp() {
+		return canWarp;
 	}
 	
 }

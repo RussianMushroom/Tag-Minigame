@@ -11,8 +11,9 @@ permissions:
   tag.stop:
     default: op
   tag.join:
-    default: default
+    default: op
   tag.help:
-    default: default
+    default: op
   tag.leave:
-    default: default
+    default: op
+    

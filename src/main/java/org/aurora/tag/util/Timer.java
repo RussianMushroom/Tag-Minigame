@@ -5,33 +5,56 @@ import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Sound;
 import org.bukkit.scheduler.BukkitTask;
 
 /**
- * 
+ * Implements a Timer to delay specified events such as the start of a game of Tag.
  * @author RussianMushroom
- *
  */
 public class Timer {
 	
-	private static BukkitTask bBowTask;
-	private static boolean bowIsActive = true;
+	private static BukkitTask upgradeTask;
+	private static boolean upgradeIsActive = true;
+	private static boolean isGrace = true;
 	
-	 public static void startBowTimer() {
-		 bowIsActive = false;
+	 public static void startUpgradeTimer() {
+		 upgradeIsActive = false;
 		 Runnable run = () -> {
 			 TagManager.getVotedPlayers().forEach(player -> {
 				 player.sendMessage(ChatColor.GOLD
-						 + "You can now get your upgrade!");
+						 + ConfigLoader.getDefault("Tag.Strings.GetUpgrade"));
 			 });
-			 bowIsActive = true;
+			 upgradeIsActive = true;
 		 };
-		 
-		 bBowTask = Bukkit.getServer().getScheduler().runTaskLater(
+		 				
+		 upgradeTask = Bukkit.getServer().getScheduler().runTaskLater(
 				 Bukkit.getServer().getPluginManager().getPlugin("Tag"),
 				 run,
 				 Long.parseLong(ConfigLoader.getDefault("Tag.Timer.TicksBeforeGetBow"))
 				 );
+	 }
+	 
+	 public static void startGraceTimer() {
+		 TagManager.getVotedPlayers().forEach(player -> {
+			 player.sendMessage(ChatColor.GOLD
+					 + String.format(ConfigLoader.getDefault("Tag.Strings.Grace"),
+					 Integer.parseInt(ConfigLoader.getDefault("Tag.Timer.GradePeriod"))));
+		 });
+			 
+			 Runnable run = () -> {
+				 isGrace = false;
+				 TagManager.getVotedPlayers().forEach(player -> {
+					 player.sendMessage(ChatColor.GOLD
+							 + ConfigLoader.getDefault("Tag.Strings.NoGrace"));
+					 player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_THUNDER, 10, 1);
+				 });
+			 };
+				 
+			 Bukkit.getServer().getScheduler().runTaskLater(
+					 Bukkit.getServer().getPluginManager().getPlugin("Tag"),
+					 run,
+					 Long.parseLong(ConfigLoader.getDefault("Tag.Timer.GracePeriod")));
 	 }
 	 
 	 public static void delayStart() {
@@ -53,11 +76,16 @@ public class Timer {
 	 }
 	 
 	public static void disableTimers() {
-		bBowTask.cancel();
+		if(upgradeTask != null)
+			upgradeTask.cancel();
 	}
 	
-	public static boolean bowIsActive() {
-		return bowIsActive;
+	public static boolean upgradeIsActive() {
+		return upgradeIsActive;
+	}
+	
+	public static boolean isGrace() {
+		return isGrace;
 	}
 	
 }

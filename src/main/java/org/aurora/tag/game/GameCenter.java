@@ -3,6 +3,7 @@ package org.aurora.tag.game;
 import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.util.InventoryManager;
+import org.aurora.tag.util.Timer;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -18,28 +19,38 @@ public class GameCenter {
 		Bukkit.broadcastMessage(ChatColor.GOLD
 				+ ConfigLoader.getDefault("Tag.Strings.GameStart"));
 		
+		// Warp everyone to the arena
+		TagManager.getVotedPlayers().forEach(player -> {
+			TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Arena"), player);
+		});
+		
 		// Clear all inventories and apply items 
 		InventoryManager.clearPlayerInventory();
 		
 		InventoryManager.setTagBaton();
 		InventoryManager.setArmour();
+		
+		// Start grace period countdown
+		Timer.startGraceTimer();
 	}
 	
 	public static void stop() {
-		Bukkit.broadcastMessage(ChatColor.GOLD
-				+ ConfigLoader.getDefault("Tag.Strings.GameStop"));
+		if(TagManager.isActive())
+			Bukkit.broadcastMessage(ChatColor.GOLD
+					+ ConfigLoader.getDefault("Tag.Strings.GameStop"));
 		
 		// Clear inventories and set game to inactive
 		InventoryManager.clearPlayerInventory();
 		
 		TagManager.deactivate();
+		Timer.disableTimers();
 		
 	}
 	
 	public static void registerWinner(Player player) {
 		// Warp all the users back to the Lounge and clear their inventories
 		TagManager.getJoinedPlayers().forEach(p -> {
-			p.performCommand("warp " + ConfigLoader.getDefault("Tag.Arena.Lobby"));
+			TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Lobby"), p);
 		});
 		InventoryManager.clearPlayerInventory();
 		
