@@ -2,6 +2,7 @@ package org.aurora.tag.game;
 
 import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.Timer;
 import org.bukkit.Bukkit;
@@ -49,8 +50,11 @@ public class GameCenter {
 	
 	public static void registerWinner(Player player) {
 		// Warp all the users back to the Lounge and clear their inventories
-		TagManager.getJoinedPlayers().forEach(p -> {
+		// Update leaderboard
+		LeaderboardManager.add(player, true);
+		TagManager.getVotedPlayers().forEach(p -> {
 			TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Lobby"), p);
+			LeaderboardManager.add(p, false);
 		});
 		InventoryManager.clearPlayerInventory();
 		
@@ -58,11 +62,13 @@ public class GameCenter {
 		Bukkit.broadcastMessage(ChatColor.GOLD
 				+ String.format(ConfigLoader.getDefault("Tag.Strings.BroadcastWinner"), player.getName()));
 		
-		// Give the winner their reward
-		InventoryManager.setWinnerReward(player);
-	
 		// Reopen the game
 		stop();
+		
+		// Give the winner their reward
+		InventoryManager.setWinnerReward(player);
+		
+
 	}
 	
 }
