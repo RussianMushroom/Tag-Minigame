@@ -15,9 +15,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
+
+import io.netty.util.internal.ThreadLocalRandom;
 
 
 /**
@@ -77,38 +79,42 @@ public class InventoryManager {
 	}
 
 	
+	@SuppressWarnings("deprecation")
 	public static void setUpgrade(Player player) {
 		ItemStack bow = new ItemStack(Material.BOW),
 				arrow = new ItemStack(Material.BOW, Integer.parseInt(ConfigLoader.getDefault("Tag.Tools.ArrowCount"))),
 				healPotion = new ItemStack(Material.LINGERING_POTION),
 				swiftPotion = new ItemStack(Material.LINGERING_POTION),
-				jumpPotion = new ItemStack(Material.LINGERING_POTION);
+				jumpPotion = new ItemStack(Material.LINGERING_POTION),
+				blindPotion = new ItemStack(Material.LINGERING_POTION);
 		
 		// Add meta data to the potions
 		PotionMeta healMeta = (PotionMeta) healPotion.getItemMeta();
 		healMeta.setBasePotionData(new PotionData(PotionType.INSTANT_HEAL,
-				true, false));
+				false, false));
 		healPotion.setItemMeta(healMeta);
 		
 		PotionMeta speedMeta = (PotionMeta) swiftPotion.getItemMeta();
 		speedMeta.setBasePotionData(new PotionData(PotionType.SPEED,
-				true, false));
+				false, false));
 		swiftPotion.setItemMeta(speedMeta);
 		
 		PotionMeta jumpMeta = (PotionMeta) jumpPotion.getItemMeta();
 		jumpMeta.setBasePotionData(new PotionData(PotionType.JUMP,
-				true, false));
+				false, false));
 		jumpPotion.setItemMeta(jumpMeta);
 		
-		// Add items to an array
+		PotionMeta blindMeta = (PotionMeta) blindPotion.getItemMeta();
+		blindMeta.setMainEffect(PotionEffectType.BLINDNESS);
+		blindPotion.setItemMeta(blindMeta);
 		
-		ItemStack[] items = new ItemStack[]{bow, arrow, healPotion, swiftPotion, jumpPotion};
-		ItemStack upgrade = items[numberGenerator(items.length)];
-		Bukkit.broadcastMessage(upgrade.getType().name());
+		// Add items to an array
+		ItemStack[] items = new ItemStack[]{bow, arrow, healPotion, swiftPotion, jumpPotion, blindPotion};
+		ItemStack upgrade = items[randomIndexGenerator(items.length)];
 		
 		// Check if the Player already has a bow, if they do, then give them something else.
 		while(player.getInventory().contains(Material.BOW) && upgrade.getType() == Material.BOW) {
-			upgrade = items[numberGenerator(items.length)];
+			upgrade = items[randomIndexGenerator(items.length)];
 		}
 		
 		player.getInventory().addItem(upgrade);
@@ -118,9 +124,10 @@ public class InventoryManager {
 		ItemStack playerReward;
 		
 		// Get the skull of a random player
-		ItemStack playerRewardSkull = new ItemStack(Material.SKULL_ITEM);
-		SkullMeta sMeta = (SkullMeta) playerRewardSkull.getItemMeta();
-		// TODO
+		// ItemStack playerRewardSkull = new ItemStack(Material.SKULL_ITEM);
+		// SkullMeta sMeta = (SkullMeta) playerRewardSkull.getItemMeta();
+		// sMeta.setOwner(TagManager.getRandomPlayer(TagManager.getRipPlayers()).getName());
+		// playerRewardSkull.setItemMeta(sMeta);
 		
 		List<Enchantment> swordEnchantments = new ArrayList<>(Arrays.asList(
 				Enchantment.SWEEPING_EDGE,
@@ -136,8 +143,8 @@ public class InventoryManager {
 		
 		ItemStack[] rewardStack = new ItemStack[]{
 				new ItemStack(Material.BOW),
-				new ItemStack(Material.DIAMOND, numberGenerator(10)),
-				new ItemStack(Material.ARROW, numberGenerator(64)),
+				new ItemStack(Material.DIAMOND, randomIndexGenerator(10) + 1),
+				new ItemStack(Material.ARROW, randomIndexGenerator(64) + 1),
 				new ItemStack(Material.BLUE_SHULKER_BOX),
 				new ItemStack(Material.SHIELD),
 				new ItemStack(Material.DIAMOND_SWORD),
@@ -145,28 +152,40 @@ public class InventoryManager {
 				new ItemStack(Material.GOLD_SWORD)
 		};
 		
-		playerReward = rewardStack[numberGenerator(rewardStack.length)];
+		playerReward = rewardStack[randomIndexGenerator(rewardStack.length)];
 		
 		// Set proper enchantments if the item is a sword or bow
 		if(playerReward.getType() == Material.BOW) {
 			ItemMeta bowMeta = playerReward.getItemMeta();
 			bowMeta.addEnchant(
-					bowEnchantments.get(numberGenerator(bowEnchantments.size())),
+					bowEnchantments.get(randomIndexGenerator(bowEnchantments.size())),
 					1, true);
 			playerReward.setItemMeta(bowMeta);
 		} else if (playerReward.getType().name().toLowerCase().contains("sword")) {
 			ItemMeta swordMeta = playerReward.getItemMeta();
 			swordMeta.addEnchant(
-					swordEnchantments.get(numberGenerator(swordEnchantments.size())),
+					swordEnchantments.get(randomIndexGenerator(swordEnchantments.size())),
 					1, true);
 			playerReward.setItemMeta(swordMeta);
 		}
 		
 		// player.getInventory().addItem(playerRewardSkull);
+		int moneyReward = Integer.parseInt(ConfigLoader.getDefault("Tag.Rewards.Money"));
+		if(Bukkit.getServer().getPluginManager().getPlugin("Essentials") != null)
+			Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),
+					"economy give" + player + moneyReward);
+		
 		player.getInventory().addItem(playerReward);
 	}
 	
-	private static int numberGenerator(int maxSize) {
-		return (int) Math.random() * maxSize;
+	/**
+	 * Returns a random number between 0 and the specified <code>maxSize</code>.
+	 * As it is being used for arrays, the number is adjusted to fit zero-indexed arrays. 
+	 * (Add 1 to the result to counteract this)  
+	 * @param maxSize
+	 * @return
+	 */
+	private static int randomIndexGenerator(int maxSize) {
+		return ThreadLocalRandom.current().nextInt(0, maxSize - 1); 
 	}
 }

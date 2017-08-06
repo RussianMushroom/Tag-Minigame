@@ -2,10 +2,12 @@ package org.aurora.tag;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.util.Timer;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 /**
@@ -41,13 +43,22 @@ public class TagManager {
 	public static void addRip(Player player) {
 		if(!ripPlayers.contains(player))
 			ripPlayers.add(player);
+		// Check if all players are in rip
+		// if so, end the game without a winner
+		if(votedPlayers.size() == ripPlayers.size())
+			GameCenter.stop();
 	}
 	
 	// Deal with warps so as to bypass the listener
 	public static void legalWarp(String warp, Player player) {
+		String[] warpList = warp.split(",");
+		Location arenaLocation = new Location(player.getWorld(),
+				Integer.parseInt(warpList[0]),
+				Integer.parseInt(warpList[1]),
+				Integer.parseInt(warpList[2]));
 		if(!canWarp)
 			canWarp = true;
-		player.performCommand("warp " + warp);
+		player.teleport(arenaLocation);
 	}
 	
 	public static void prohibitWarp() {
@@ -85,9 +96,8 @@ public class TagManager {
 			votedPlayers.remove(player);
 		if(ripPlayers.contains(player))
 			ripPlayers.remove(player);
-		
-		// TODO:  Implement a method to warp player back to previous location
-		// and reset their inventory
+	
+		player.performCommand("back");
 		
 		// Check if game is active and is last person to leave
 		if(isActive && votedPlayers.isEmpty())
@@ -108,6 +118,11 @@ public class TagManager {
 		return false;
 	}
 	
+	public static Player getRandomPlayer(List<Player> playerList) {
+		return playerList.get(ThreadLocalRandom.current().nextInt(0, playerList.size() - 1));
+	}
+	
+	
 	// Getters and Setters
 	
 	public static List<Player> getJoinedPlayers() {
@@ -116,6 +131,10 @@ public class TagManager {
 	
 	public static List<Player> getVotedPlayers() {
 		return votedPlayers;
+	}
+	
+	public static List<Player> getRipPlayers() {
+		return ripPlayers;
 	}
 	
 	public static boolean isActive() {

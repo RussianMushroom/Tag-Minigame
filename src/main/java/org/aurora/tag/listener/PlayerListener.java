@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
+import org.bukkit.entity.Arrow;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -22,10 +23,11 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerKickEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerTeleportEvent;
+import org.bukkit.event.player.PlayerToggleFlightEvent;
 
 public class PlayerListener implements Listener {
 	
-	// Listen to player hitting others
+	// Listen for player hitting others or players being hit by arrows
 	@EventHandler
 	public void onEntityDamageByEntityEvent(EntityDamageByEntityEvent event) {
 		Entity attacker = event.getDamager();
@@ -41,31 +43,46 @@ public class PlayerListener implements Listener {
 					&& !Timer.isGrace()) {
 				// Check if tagger used stick
 				if(tagger.getInventory().getItemInMainHand().getType() == Material.STICK) {
-					// Add check to see if everyone has been tagged
-					if(TagManager.isLastPersonStanding(tagger)) {
-						tagger.sendMessage(ChatColor.GOLD
-								+ String.format(ConfigLoader.getDefault("Tag.Strings.LastPersonStanding"), 
-										tagged.getName()));
-						GameCenter.registerWinner(tagger);
-					}
-					else
-						tagger.sendMessage(ChatColor.GOLD
-								+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"), 
-										tagged.getName()));
-					
 					tagged.playSound(tagged.getLocation(), Sound.ENTITY_GHAST_SHOOT, 10, 1);
-					TagManager.addRip(tagged);
-					tagged.sendMessage(ChatColor.GOLD
-							+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTaggedByPlayer"), 
-									tagger.getName()));
-					tagged.performCommand("warp " + ConfigLoader.getDefault("Tag.Arena.Rip"));
+					registerHit(tagger, tagged);
 				}
 			}
+			// If tagger used bow
+		} else if(attacker instanceof Arrow && attacked instanceof Player) {
+			if(((Arrow) attacker).getShooter() instanceof Player) {
+				Player tagger = (Player) ((Arrow) attacker).getShooter();
+				Player tagged = (Player) attacked;
+				
+				if(TagManager.getVotedPlayers().contains(tagger)
+						&& TagManager.getVotedPlayers().contains(tagged)
+						&& TagManager.isActive()
+						&& !Timer.isGrace())
+					registerHit(tagger, tagged);
+			}
 		}
-			
 	}      
 	
-	// Listen to player hitting signs
+	private static void registerHit(Player tagger, Player tagged) {
+		TagManager.addRip(tagged);
+		tagged.sendMessage(ChatColor.GOLD
+				+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTaggedByPlayer"), 
+						tagger.getName()));
+		TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Rip"), tagged);
+		
+		// Add check to see if everyone has been tagged
+		if(TagManager.isLastPersonStanding(tagger)) {
+			tagger.sendMessage(ChatColor.GOLD
+					+ String.format(ConfigLoader.getDefault("Tag.Strings.LastPersonStanding"), 
+							tagged.getName()));
+			GameCenter.registerWinner(tagger);
+		}
+		else
+			tagger.sendMessage(ChatColor.GOLD
+					+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"), 
+							tagged.getName()));
+	}
+	
+	// Listen for player hitting signs
 	@EventHandler
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
@@ -90,19 +107,20 @@ public class PlayerListener implements Listener {
 							player.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.PlayerAlreadyVote"));
 					}
-					// Player clicked sign to get bow
-					else if (sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToBow"))
+					// Player clicked sign to get an upgrade
+					else if (sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToUpgrade"))
 							&& TagManager.isActive()
-							&& TagManager.getVotedPlayers().contains(player)) {
+							&& TagManager.getVotedPlayers().contains(player)
+							&& !Timer.isGrace()) {
 						if(Timer.upgradeIsActive()) {
 							Timer.startUpgradeTimer();
 							player.sendMessage(ChatColor.GOLD
-									+ ConfigLoader.getDefault("Tag.Strings.TicksBeforeUpgrade"));
+									+ ConfigLoader.getDefault("Tag.Strings.PlayerGetUpgrade"));
 							InventoryManager.setUpgrade(player);
 						}
 						else
 							player.sendMessage(ChatColor.GOLD
-									+ ConfigLoader.getDefault("Tag.Strings.BowNotReady"));
+									+ ConfigLoader.getDefault("Tag.Strings.UpgradeNotReady"));
 						
 					}
 				}
@@ -162,5 +180,13 @@ public class PlayerListener implements Listener {
 		if(TagManager.getJoinedPlayers().contains(event.getPlayer()))
 			TagManager.removePlayer(event.getPlayer());
 	}
+	
+	// Disable flight
+	@EventHandler
+	public void onPlayerToggleFlightEvent(PlayerToggleFlightEvent event) {
+		if(TagManager.getJoinedPlayers().contains(event.getPlayer()))
+			event.setCancelled(true);
+	}
+	
 	
 }

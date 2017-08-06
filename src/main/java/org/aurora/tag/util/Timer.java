@@ -15,6 +15,7 @@ import org.bukkit.scheduler.BukkitTask;
 public class Timer {
 	
 	private static BukkitTask upgradeTask;
+	private static BukkitTask graceTask;
 	private static boolean upgradeIsActive = true;
 	private static boolean isGrace = true;
 	
@@ -31,27 +32,30 @@ public class Timer {
 		 upgradeTask = Bukkit.getServer().getScheduler().runTaskLater(
 				 Bukkit.getServer().getPluginManager().getPlugin("Tag"),
 				 run,
-				 Long.parseLong(ConfigLoader.getDefault("Tag.Timer.TicksBeforeGetBow"))
+				 Long.parseLong(ConfigLoader.getDefault("Tag.Timer.TicksBeforeUpgrade"))
 				 );
 	 }
 	 
 	 public static void startGraceTimer() {
+		 isGrace = true;
+		 
 		 TagManager.getVotedPlayers().forEach(player -> {
 			 player.sendMessage(ChatColor.GOLD
 					 + String.format(ConfigLoader.getDefault("Tag.Strings.Grace"),
-					 Integer.parseInt(ConfigLoader.getDefault("Tag.Timer.GradePeriod"))));
+					 Integer.parseInt(ConfigLoader.getDefault("Tag.Timer.GracePeriod")) / 20));
 		 });
 			 
 			 Runnable run = () -> {
-				 isGrace = false;
 				 TagManager.getVotedPlayers().forEach(player -> {
 					 player.sendMessage(ChatColor.GOLD
 							 + ConfigLoader.getDefault("Tag.Strings.NoGrace"));
 					 player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_THUNDER, 10, 1);
 				 });
+
+				 isGrace = false;
 			 };
 				 
-			 Bukkit.getServer().getScheduler().runTaskLater(
+			 graceTask = Bukkit.getServer().getScheduler().runTaskLater(
 					 Bukkit.getServer().getPluginManager().getPlugin("Tag"),
 					 run,
 					 Long.parseLong(ConfigLoader.getDefault("Tag.Timer.GracePeriod")));
@@ -78,6 +82,8 @@ public class Timer {
 	public static void disableTimers() {
 		if(upgradeTask != null)
 			upgradeTask.cancel();
+		if(graceTask != null)
+			graceTask.cancel();
 	}
 	
 	public static boolean upgradeIsActive() {

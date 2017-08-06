@@ -40,12 +40,15 @@ public class GameCenter {
 			Bukkit.broadcastMessage(ChatColor.GOLD
 					+ ConfigLoader.getDefault("Tag.Strings.GameStop"));
 		
+		forceStop();
+	}
+	
+	public static void forceStop() {
 		// Clear inventories and set game to inactive
-		InventoryManager.clearPlayerInventory();
-		
-		TagManager.deactivate();
-		Timer.disableTimers();
-		
+				InventoryManager.clearPlayerInventory();
+				
+				TagManager.deactivate();
+				Timer.disableTimers();
 	}
 	
 	public static void registerWinner(Player player) {

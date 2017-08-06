@@ -239,6 +239,7 @@ public class TagCommand {
 				));
 	}
 	
+	@SuppressWarnings("unused")
 	private static void displayLeaderboard(CommandSender sender, String top) {
 		List<String> leaderboard = LeaderboardManager.getLeaderboardTop().get();
 		
