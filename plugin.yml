@@ -1,10 +1,13 @@
 name: Tag
-version: 0.6.0
+description: Introduces a Tag multipalyer minigame to the server. 
+version: 0.8.0
 main: org.aurora.tag.Tag
+authors: ["RussianMushroom"]
+
 commands:
   tag:
-   description: Tag command.
-   
+    description: 
+  
 permissions:
   tag.start:
     default: op
@@ -16,4 +19,7 @@ permissions:
     default: op
   tag.leave:
     default: op
-    
+  tag.set:
+    default: op
+  tag.leaderboard:
+    default: op
