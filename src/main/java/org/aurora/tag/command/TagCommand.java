@@ -1,13 +1,16 @@
 package org.aurora.tag.command;
+import java.util.List;
 
 import org.aurora.tag.Tag;
 import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
+import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.Timer;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
@@ -32,6 +35,7 @@ public class TagCommand {
 				switch (args[0].toLowerCase()) {
 				// /tag join & /tag join confirm
 				case "join":
+				case "j":
 					if(sender instanceof ConsoleCommandSender)
 						sender.sendMessage(ChatColor.GOLD
 								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
@@ -120,9 +124,60 @@ public class TagCommand {
 							GameCenter.stop();
 					} else
 						notEnoughPermission(sender);
+					
+					break;
+				// /tag set [arena|rip|lobby]
+				case "set":
+					if(sender instanceof ConsoleCommandSender)
+						sender.sendMessage(ChatColor.GOLD
+								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
+					else if(!sender.hasPermission("tag.set")) 
+						notEnoughPermission(sender);
+					else {
+						if(args.length != 2) {
+							sender.sendMessage(ChatColor.GOLD
+									+ ConfigLoader.getDefault("Tag.Strings.SetSyntax"));
+						} else {
+							if (args[1].equalsIgnoreCase("arena")) 
+								setArena("Tag.Arena.Arena", sender);					
+							else if(args[1].equalsIgnoreCase("lobby")) 
+								setArena("Tag.Arena.Lobby", sender);
+							else if(args[1].equalsIgnoreCase("rip")) 
+								setArena("Tag.Arena.Rip", sender);
+						}
+					}
+					break;
+				/*
+				// /tag leaderboard
+				case "leaderboard":
+				case "lb":
+					if(!sender.hasPermission("tag.leaderboard"))
+						notEnoughPermission(sender);
+					else {
+						if(!LeaderboardManager.getLeaderboardTop().isPresent())
+							Bukkit.getServer().getLogger().warning("[Tag] leaderboard.yml was not detected!");
+						else 
+							displayLeaderboard(sender, args[1]);
+					}
+					*/
 				}
 		}
 		
+	}
+	
+	
+	private static void setArena(String path, CommandSender sender) {
+		Location location = ((Player) sender).getLocation();
+		
+		ConfigLoader.set(
+				path,
+				String.format("%s,%s,%s",
+						location.getBlockX(),
+						location.getBlockY(),
+						location.getBlockZ())
+				);
+		sender.sendMessage(ChatColor.GOLD
+				+ ConfigLoader.getDefault("Tag.Strings.ArenaAdded"));
 	}
 	
 	private static void setDefaults() {
@@ -161,9 +216,9 @@ public class TagCommand {
 				"  /tag leave   Exit from a running game of tag.\n",
 				"  /tag help     Learn how to play the game.\n",
 				" \n",
-				TagManager.isActive() 
-					? ChatColor.RED + "     Currently there is a game running.\n"
-					: ChatColor.GREEN + "     Currently there is no game running.\n",
+				"     Status: " + (TagManager.isActive() 
+					? ChatColor.RED + "ACTIVE.\n"
+					: ChatColor.GREEN + "OPEN.\n"),
 				ChatColor.AQUA + "     " + TagManager.getJoinedPlayers().size() 
 				+ "/" + TagManager.getMaxPlayers() + " joined.\n",
 				"===============================\n"
@@ -178,9 +233,46 @@ public class TagCommand {
 				"===============================\n",
 				"  Tag-Minigame Help: \n",
 				"===============================\n",
+				"  The Tag-Minigame is a game where ",
 				// Space for 4 lines
 				"===============================\n"
 				));
+	}
+	
+	private static void displayLeaderboard(CommandSender sender, String top) {
+		List<String> leaderboard = LeaderboardManager.getLeaderboardTop().get();
+		
+		// Make sure that there are no NPE's
+		int defaultSize = isInteger(top) ? Integer.parseInt(top) : 10;
+		defaultSize = defaultSize > leaderboard.size() ? leaderboard.size() : defaultSize;
+		
+		StringBuilder sBuilder = new StringBuilder();
+		int count = 0;
+		
+		sBuilder.append(ChatColor.GOLD + "Leaderboard: \n");
+		for(String stats : leaderboard) {
+			String player = stats.split("~")[0];
+			int[] wins = LeaderboardManager.stringToIntArray(stats.split("~")[1].split("_"));
+			sBuilder.append(String.format(ChatColor.GOLD + "[%s]: W:%s L:%s\n", 
+					player, 
+					ChatColor.GREEN + "" + wins[0],
+					ChatColor.RED + "" + wins[1]));
+			count++;
+			if(count == defaultSize)
+				break;
+		}
+		
+		sender.sendMessage(sBuilder.toString());
+	}
+	
+	
+	private static boolean isInteger(String string) {
+		try {
+			Integer.parseInt(string);
+			return true;
+		} catch (NumberFormatException e) {
+			return false;
+		}
 	}
 
 }
