@@ -18,25 +18,27 @@ import org.bukkit.configuration.file.FileConfiguration;
  */
 public class ConfigLoader {
 	
+	private static FileConfiguration fConfig;
+	
 	private static Map<String, String> backup = Collections.synchronizedMap(
 			new HashMap<String, String>());
 	
 	public static void load(Tag tag) {
 		Tag plugin = tag;
-		
-		FileConfiguration fConfig = plugin.getConfig();
+		fConfig = plugin.getConfig();
 		
 		setConfigAndBackup(fConfig, "Tag.MaxPlayers", Integer.valueOf(10));
 		
 		// Default arenas
-		setConfigAndBackup(fConfig, "Tag.Arena.Lobby", "taglobby");
-		setConfigAndBackup(fConfig, "Tag.Arena.Arena", "tagarena");
-		setConfigAndBackup(fConfig, "Tag.Arena.Rip", "tagrip");
+		// These are set by /tag set arena|rip|lobby - check if they exists upon enable
+		// setConfigAndBackup(fConfig, "Tag.Arena.Lobby", "");
+		// setConfigAndBackup(fConfig, "Tag.Arena.Arena", "");
+		// setConfigAndBackup(fConfig, "Tag.Arena.Rip", "");
 		                        
 		// Time limits          
 		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeTagStart", Integer.valueOf(140));
 		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeUpgrade", Integer.valueOf(400));
-		setConfigAndBackup(fConfig, "Tag.Timer.GracePeriod", Integer.valueOf(3000));
+		setConfigAndBackup(fConfig, "Tag.Timer.GracePeriod", Integer.valueOf(1000));
 		
 		// Allowed weapons    
 		setConfigAndBackup(fConfig, "Tag.Tools.Baton", "STICK");
@@ -45,7 +47,10 @@ public class ConfigLoader {
 		
 		// Sign text
 		setConfigAndBackup(fConfig, "Tag.Sign.SignToVote", "[VOTE]");
-		setConfigAndBackup(fConfig, "Tag.Sign.SignToBow", "[UPGRADE]");
+		setConfigAndBackup(fConfig, "Tag.Sign.SignToUpgrade", "[UPGRADE]");
+		
+		// Economy
+		setConfigAndBackup(fConfig, "Tag.Rewards.Money", Integer.valueOf(50));
 		
 		// Externalise strings
 		setConfigAndBackup(fConfig, "Tag.Strings.NotifyPlayersGameStart", "This game of Tag is starting in %d seconds!");
@@ -54,14 +59,14 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerTaggedByPlayer", "You have been tagged by %s. That means it is gameover for you. Better luck next time!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerVote", "You have successfully voted.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerAlreadyVote", "You have already voted. Please wait for the others to vote before the game starts!");
-		setConfigAndBackup(fConfig, "Tag.Strings.PlayerGetBow", "With great power, comes great responsibility!");
-		setConfigAndBackup(fConfig, "Tag.Strings.BowNotReady", "Be patient, it will be ready soon!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerGetUpgrade", "With great power, comes great responsibility!");
+		setConfigAndBackup(fConfig, "Tag.Strings.UpgradeNotReady", "Be patient, it will be ready soon!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotTeleport", "You cannot teleport while you are in a Tag game. To leave this game, use /tag leave.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotChangeGameMode", "You cannot change your game mode while you are in a Tag game. To leave this game, use /tag leave.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerHasLeft", "%s has left the game.");
 		setConfigAndBackup(fConfig, "Tag.Strings.GameStart", "[Tag] A new game of Tag has been started. Please wait for this game to end before joining a new one.");
 		setConfigAndBackup(fConfig, "Tag.Strings.GameStop", "[Tag] This game of Tag has ended! You may now join a new game.");
-		setConfigAndBackup(fConfig, "Tag.Strings.BroadcastWinner", "[Tag] %s has defeated all his foes to win this game of Tag!");
+		setConfigAndBackup(fConfig, "Tag.Strings.BroadcastWinner", "[Tag] %s has defeated all their foes to win this game of Tag!");
 		setConfigAndBackup(fConfig, "Tag.Strings.ConsoleUser", "This command cannot be used from the console!");
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInLobby", "You are already in the Lobby, please vote to start the game!");
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInActiveGame", "You are already in an active game of Tag. To leave this game, use /tag leave.");
@@ -79,17 +84,31 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.MinPlayers", "There need to be at least two players to start a game fo Tag.");
 		setConfigAndBackup(fConfig, "Tag.Strings.Grace", "You now have %d seconds to get into position. Good luck!");
 		setConfigAndBackup(fConfig, "Tag.Strings.NoGrace", "The grace period is over!");
+		setConfigAndBackup(fConfig, "Tag.Strings.ArenaAdded", "The warp was successfully added!");
+		setConfigAndBackup(fConfig, "Tag.Strings.SetSyntax", "Invalid syntax: /tag set [arena | lobby | rip]");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerScore", "%s has won %d time(s) and lost %s time(s)!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNoScore", "%s has not played a game of Tag before!");
 		
-		
+		save();
+
+	}
+	
+	public static void set(String path, String value) {
+		setConfigAndBackup(fConfig, path, value);
+		save();
+	}
+	
+	
+	private static void save() {
 		try {
 			File configFile = new File(ConfigFile.getConfigPath() + File.separator + ConfigFile.CONFIG);
-			if(!configFile.exists())
-				fConfig.save(configFile);
+			fConfig.save(configFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 	}
 	
+
 	public static String getDefault(String path) {		
 		FileConfiguration fConfig = Bukkit.getServer().getPluginManager()
 				.getPlugin("Tag")
@@ -100,7 +119,7 @@ public class ConfigLoader {
 			
 			return fConfig.contains(path) ? fConfig.getString(path) : backup.get(path); 
 		} catch (IOException e) {
-			e.printStackTrace();
+			return backup.get(path);
 		} catch (InvalidConfigurationException e) {
 			e.printStackTrace();
 		}
@@ -108,10 +127,29 @@ public class ConfigLoader {
 		return backup.get(path);
 	}
 	
-	// Add a backup of the values and save it to memory in case the config file cannot be found.
+	/**
+	 * Add a backup of the values and save it to memory in case the config file cannot be found.
+	 * @param fConfig
+	 * @param path
+	 * @param value
+	 */
 	private static void setConfigAndBackup(FileConfiguration fConfig, String path, Object value) {
 		fConfig.set(path, value);
-		backup.put(path, value.toString());
+		
+		if(!backup.containsKey(path))
+			backup.put(path, value.toString());
+		else
+			backup.replace(path, value.toString());
+	}
+	
+	public static boolean allWarpsActive() {
+		return fConfig.contains("Tag.Arena.Arena")
+				&& fConfig.contains("Tag.Arena.Rip")
+				&& fConfig.contains("Tag.Arena.Lobby");
+	}
+	
+	public static FileConfiguration getFileConfig() {
+		return fConfig;
 	}
 	
 }
