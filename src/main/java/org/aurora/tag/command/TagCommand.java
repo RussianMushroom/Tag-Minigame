@@ -171,7 +171,8 @@ public class TagCommand {
 		
 		ConfigLoader.set(
 				path,
-				String.format("%s,%s,%s",
+				String.format("%s_%s,%s,%s",
+						((Player) sender).getWorld().getName(),
 						location.getBlockX(),
 						location.getBlockY(),
 						location.getBlockZ())
