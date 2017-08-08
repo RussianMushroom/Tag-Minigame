@@ -114,8 +114,11 @@ public class InventoryManager {
 		
 		// Check if the Player already has a bow, if they do, then give them something else.
 		while(player.getInventory().contains(Material.BOW) && upgrade.getType() == Material.BOW) {
-			upgrade = items[randomIndexGenerator(items.length)];
+			upgrade = items[1];
 		}
+		
+		if(upgrade.getType() == Material.BOW)
+			player.getInventory().addItem(items[1]);
 		
 		player.getInventory().addItem(upgrade);
 	}
