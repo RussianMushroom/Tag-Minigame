@@ -7,6 +7,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.util.Timer;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
@@ -51,8 +52,9 @@ public class TagManager {
 	
 	// Deal with warps so as to bypass the listener
 	public static void legalWarp(String warp, Player player) {
-		String[] warpList = warp.split(",");
-		Location arenaLocation = new Location(player.getWorld(),
+		String worldName = warp.split("_")[0];
+		String[] warpList = warp.split("_")[1].split(",");
+		Location arenaLocation = new Location(Bukkit.getWorld(worldName),
 				Integer.parseInt(warpList[0]),
 				Integer.parseInt(warpList[1]),
 				Integer.parseInt(warpList[2]));
