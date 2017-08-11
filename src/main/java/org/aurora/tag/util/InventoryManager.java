@@ -2,7 +2,9 @@ package org.aurora.tag.util;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
@@ -28,10 +30,20 @@ import io.netty.util.internal.ThreadLocalRandom;
  *
  */
 public class InventoryManager {
+	
+	private static Map<Player, ItemStack[]> playerInv = new HashMap<>();
 
-	public static void clearPlayerInventory() {
+	public static void clearPlayerInventory(boolean stopping) {
 		TagManager.getVotedPlayers().forEach(player -> {
-			player.getInventory().clear();
+			if(stopping) {
+				// clear the game inventory and load player's saved inventory
+				player.getInventory().clear();
+				player.getInventory().setContents(playerInv.get(player));
+			} else {
+				// Save player's inventory
+				playerInv.put(player, player.getInventory().getContents());
+				player.getInventory().clear();
+			}
 		});
 	}
 	
@@ -123,8 +135,9 @@ public class InventoryManager {
 		player.getInventory().addItem(upgrade);
 	}
 	
-	public static void setWinnerReward(Player player) {  
-		ItemStack playerReward;
+
+	public static ItemStack getReward(Player winner) {  
+		ItemStack reward;
 		
 		// Get the skull of a random player
 		// ItemStack playerRewardSkull = new ItemStack(Material.SKULL_ITEM);
@@ -146,8 +159,8 @@ public class InventoryManager {
 		
 		ItemStack[] rewardStack = new ItemStack[]{
 				new ItemStack(Material.BOW),
-				new ItemStack(Material.DIAMOND, randomIndexGenerator(10) + 1),
-				new ItemStack(Material.ARROW, randomIndexGenerator(64) + 1),
+				new ItemStack(Material.DIAMOND, InventoryManager.randomIndexGenerator(10) + 1),
+				new ItemStack(Material.ARROW, InventoryManager.randomIndexGenerator(64) + 1),
 				new ItemStack(Material.BLUE_SHULKER_BOX),
 				new ItemStack(Material.SHIELD),
 				new ItemStack(Material.DIAMOND_SWORD),
@@ -155,30 +168,30 @@ public class InventoryManager {
 				new ItemStack(Material.GOLD_SWORD)
 		};
 		
-		playerReward = rewardStack[randomIndexGenerator(rewardStack.length)];
+		reward = rewardStack[InventoryManager.randomIndexGenerator(rewardStack.length)];
 		
 		// Set proper enchantments if the item is a sword or bow
-		if(playerReward.getType() == Material.BOW) {
-			ItemMeta bowMeta = playerReward.getItemMeta();
+		if(reward.getType() == Material.BOW) {
+			ItemMeta bowMeta = reward.getItemMeta();
 			bowMeta.addEnchant(
-					bowEnchantments.get(randomIndexGenerator(bowEnchantments.size())),
+					bowEnchantments.get(InventoryManager.randomIndexGenerator(bowEnchantments.size())),
 					1, true);
-			playerReward.setItemMeta(bowMeta);
-		} else if (playerReward.getType().name().toLowerCase().contains("sword")) {
-			ItemMeta swordMeta = playerReward.getItemMeta();
+			reward.setItemMeta(bowMeta);
+		} else if (reward.getType().name().toLowerCase().contains("sword")) {
+			ItemMeta swordMeta = reward.getItemMeta();
 			swordMeta.addEnchant(
-					swordEnchantments.get(randomIndexGenerator(swordEnchantments.size())),
+					swordEnchantments.get(InventoryManager.randomIndexGenerator(swordEnchantments.size())),
 					1, true);
-			playerReward.setItemMeta(swordMeta);
+			reward.setItemMeta(swordMeta);
 		}
 		
 		// player.getInventory().addItem(playerRewardSkull);
 		int moneyReward = Integer.parseInt(ConfigLoader.getDefault("Tag.Rewards.Money"));
 		if(Bukkit.getServer().getPluginManager().getPlugin("Essentials") != null)
 			Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),
-					"economy give" + player + moneyReward);
+					"economy give" + winner + moneyReward);
 		
-		player.getInventory().addItem(playerReward);
+		return reward;
 	}
 	
 	/**
@@ -188,7 +201,18 @@ public class InventoryManager {
 	 * @param maxSize
 	 * @return
 	 */
-	private static int randomIndexGenerator(int maxSize) {
+	public static int randomIndexGenerator(int maxSize) {
 		return ThreadLocalRandom.current().nextInt(0, maxSize - 1); 
 	}
+	
+	// Getters
+	
+	public static Map<Player, ItemStack[]> getPlayerInv() {
+		return playerInv;
+	}
+	
+	public static void clearPlayerInv() {
+		playerInv.clear();
+	}
+	
 }
