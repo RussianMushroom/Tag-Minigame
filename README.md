@@ -35,5 +35,6 @@ In order to make sure that this plugin runs smoothly on the server, make sure th
 - Make sure that there is a sign in the Arena with the necessary tag (Default: **[UPGRADE]**).
   - There may be numerous upgrade signs situated throughout the Arena. This allows taggers to receive upgrades that give them the upper hand.
   
-  ## Credits
-  @ValkieYria: for bringing up the idea and being an active and willing member of the development.
+## Credits
+
+@ValkieYria: for bringing up the idea and being an active and willing member of the development.
