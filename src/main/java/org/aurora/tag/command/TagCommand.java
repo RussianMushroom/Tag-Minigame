@@ -58,16 +58,9 @@ public class TagCommand {
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.AlreadyActiveGameWait"));
 							else {
-								if(args.length == 2) {
-									if(args[1].equalsIgnoreCase("confirm"))
-										handleJoin((Player) sender);
-								} else {
-									if(InventoryManager.isEmpty((Player) sender))
-										handleJoin((Player) sender);
-									else
-										sender.sendMessage(ChatColor.GOLD
-												+ ConfigLoader.getDefault("Tag.Strings.PlayerClearInventory"));
-								}
+								handleJoin((Player) sender);
+								sender.sendMessage(ChatColor.GOLD
+										+ ConfigLoader.getDefault("Tag.Strings.InventorySaved"));
 							}
 						} else
 							notEnoughPermission(sender);	
@@ -88,10 +81,9 @@ public class TagCommand {
 					break;
 					// /tag help
 				case "help":
-					if(sender.hasPermission("tag.help")) {
-						// displayHelpMenu(sender);
-						sender.sendMessage("Fuck off, I am still working on this");
-					} else
+					if(sender.hasPermission("tag.help"))
+						displayHelpMenu(sender);
+					else
 						notEnoughPermission(sender);
 					break;	
 				// /tag leave
@@ -147,6 +139,25 @@ public class TagCommand {
 						}
 					}
 					break;
+				// /tag reward 
+				case "reward":
+				case "r":
+					if(sender instanceof ConsoleCommandSender)
+						sender.sendMessage(ChatColor.GOLD
+								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
+					else if(!sender.hasPermission("tag.reward"))
+						notEnoughPermission(sender);
+					else {
+						if(!TagManager.getWinners().contains((Player) sender))
+							sender.sendMessage(ChatColor.GOLD
+									+ ConfigLoader.getDefault("Tag.Strings.PlayerNotWinner"));
+						else {
+							((Player) sender).getInventory()
+								.addItem(InventoryManager.getReward((Player) sender));
+							TagManager.claim((Player) sender);
+						}	
+					}
+					break;
 				/*
 				// /tag leaderboard
 				case "leaderboard":
@@ -160,9 +171,8 @@ public class TagCommand {
 							displayLeaderboard(sender, args[1]);
 					}
 					*/
-				}
-		}
-		
+			}
+		}	
 	}
 	
 	
@@ -226,16 +236,15 @@ public class TagCommand {
 				));
 	}
 	
-	@SuppressWarnings("unused")
 	private static void displayHelpMenu(CommandSender sender) {
 		sender.sendMessage(ChatColor.AQUA 
 				+ String.format(
-				"%s%s%s%s%s%s%s%s",
+				"%s%s%s%s%s%s",
 				"===============================\n",
 				"  Tag-Minigame Help: \n",
 				"===============================\n",
-				"  The Tag-Minigame is a game where ",
-				// Space for 4 lines
+				"  Play Tag with others on the server.\n",
+				"  Tag them and be the last player standing to receive a reward.\n",
 				"===============================\n"
 				));
 	}
