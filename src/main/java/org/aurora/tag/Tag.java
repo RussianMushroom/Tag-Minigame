@@ -21,7 +21,8 @@ public class Tag extends JavaPlugin {
 
 		// Check if arenas have been enabled, if not, print to console.
 		if(!ConfigLoader.allWarpsActive())
-			getServer().getLogger().warning("[Tag] Not all arenas have been set. To fully enable this plugin, please set the arenas with the command /tag set [arena | lobby | rip].");
+			getServer().getLogger()
+				.warning("[Tag] Not all arenas have been set. To fully enable this plugin, please set the arenas with the command /tag set [arena | lobby | rip].");
 		
 		super.onEnable();
 	}
@@ -42,4 +43,3 @@ public class Tag extends JavaPlugin {
 
 	
 }
-
