@@ -6,6 +6,7 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
+import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.Timer;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -21,6 +22,7 @@ public class TagManager {
 	private static List<Player> joinedPlayers = new ArrayList<>();
 	private static List<Player> votedPlayers = new ArrayList<>();
 	private static List<Player> ripPlayers = new ArrayList<>();
+	private static List<Player> winners = new ArrayList<>();
 	private static boolean isActive = false;
 	private static boolean canWarp = false;
 	
@@ -52,6 +54,12 @@ public class TagManager {
 	
 	// Deal with warps so as to bypass the listener
 	public static void legalWarp(String warp, Player player) {
+		if(warp.equals("") || warp == null) {
+			Bukkit.getServer().getLogger().warning("[Tag] This warp could not be loaded from the config file, please make sure that all warps have been set."
+					+ "Do do such, use /tag set [arena | lobby | rip]");
+			return;
+		}
+		
 		String worldName = warp.split("_")[0];
 		String[] warpList = warp.split("_")[1].split(",");
 		Location arenaLocation = new Location(Bukkit.getWorld(worldName),
@@ -81,6 +89,8 @@ public class TagManager {
 		joinedPlayers.clear();
 		votedPlayers.clear();
 		ripPlayers.clear();
+		// Clear map with player's inventory
+		InventoryManager.getPlayerInv().clear();
 		isActive = false;
 	}
 	
@@ -124,6 +134,9 @@ public class TagManager {
 		return playerList.get(ThreadLocalRandom.current().nextInt(0, playerList.size() - 1));
 	}
 	
+	public static void claim(Player player) {
+		winners.remove(player);
+	}
 	
 	// Getters and Setters
 	
@@ -139,14 +152,22 @@ public class TagManager {
 		return ripPlayers;
 	}
 	
-	public static boolean isActive() {
-		return isActive;
+	public static List<Player> getWinners() {
+		return winners;
+	}
+	
+	public static void addWinner(Player player) {
+		winners.add(player);
 	}
 	
 	public static int getMaxPlayers() {
 		return MAX_PLAYERS;
 	}
 	
+	public static boolean isActive() {
+		return isActive;
+	}
+
 	public static boolean canWarp() {
 		return canWarp;
 	}
