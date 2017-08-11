@@ -23,10 +23,10 @@ public class GameCenter {
 		// Warp everyone to the arena
 		TagManager.getVotedPlayers().forEach(player -> {
 			TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Arena"), player);
-		});
+		}); 
 		
 		// Clear all inventories and apply items 
-		InventoryManager.clearPlayerInventory();
+		InventoryManager.clearPlayerInventory(false);
 		
 		InventoryManager.setTagBaton();
 		InventoryManager.setArmour();
@@ -45,21 +45,21 @@ public class GameCenter {
 	
 	public static void forceStop() {
 		// Clear inventories and set game to inactive
-				InventoryManager.clearPlayerInventory();
-				
-				TagManager.deactivate();
-				Timer.disableTimers();
+		InventoryManager.clearPlayerInventory(true);
+		TagManager.deactivate();
+		Timer.disableTimers();
 	}
 	
 	public static void registerWinner(Player player) {
 		// Warp all the users back to the Lounge and clear their inventories
 		// Update leaderboard
 		LeaderboardManager.add(player, true);
+		TagManager.addWinner(player);
+		
 		TagManager.getVotedPlayers().forEach(p -> {
 			TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Lobby"), p);
 			LeaderboardManager.add(p, false);
 		});
-		InventoryManager.clearPlayerInventory();
 		
 		// Broadcast the player's win to the server
 		Bukkit.broadcastMessage(ChatColor.GOLD
@@ -67,11 +67,6 @@ public class GameCenter {
 		
 		// Reopen the game
 		stop();
-		
-		// Give the winner their reward
-		InventoryManager.setWinnerReward(player);
-		
-
 	}
 	
 }

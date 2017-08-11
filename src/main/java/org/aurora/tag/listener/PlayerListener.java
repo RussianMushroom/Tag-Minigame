@@ -39,6 +39,8 @@ public class PlayerListener implements Listener {
 			
 			if(TagManager.getVotedPlayers().contains(tagger)
 					&& TagManager.getVotedPlayers().contains(tagged)
+					&& !TagManager.getRipPlayers().contains(tagger)
+					&& !TagManager.getRipPlayers().contains(tagged)
 					&& TagManager.isActive()
 					&& !Timer.isGrace()) {
 				// Check if tagger used stick
@@ -55,6 +57,8 @@ public class PlayerListener implements Listener {
 				
 				if(TagManager.getVotedPlayers().contains(tagger)
 						&& TagManager.getVotedPlayers().contains(tagged)
+						&& !TagManager.getRipPlayers().contains(tagger)
+						&& !TagManager.getRipPlayers().contains(tagged)
 						&& TagManager.isActive()
 						&& !Timer.isGrace())
 					registerHit(tagger, tagged);
@@ -91,7 +95,7 @@ public class PlayerListener implements Listener {
 		if(event.hasBlock()) {
 			clickedBlock = event.getClickedBlock();
 			
-			if(TagManager.getJoinedPlayers().contains(player))
+			if(TagManager.getJoinedPlayers().contains(player)) {
 				if(clickedBlock.getState() instanceof Sign) {
 					Sign sign = (Sign) clickedBlock.getState();
 					
@@ -121,9 +125,9 @@ public class PlayerListener implements Listener {
 						else
 							player.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.UpgradeNotReady"));
-						
 					}
 				}
+			}
 		}
 	}
 	
