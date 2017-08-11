@@ -83,6 +83,7 @@ public class TagManager {
 	
 	public static void deactivate() {
 		clearAll();
+		isActive = false;
 	}
 	
 	private static void clearAll() {
@@ -90,8 +91,7 @@ public class TagManager {
 		votedPlayers.clear();
 		ripPlayers.clear();
 		// Clear map with player's inventory
-		InventoryManager.getPlayerInv().clear();
-		isActive = false;
+		InventoryManager.clearPlayerInv();
 	}
 	
 	public static void checkStartTag() {
