@@ -55,6 +55,9 @@ public class ConfigLoader {
 		// Externalise strings
 		setConfigAndBackup(fConfig, "Tag.Strings.NotifyPlayersGameStart", "This game of Tag is starting in %d seconds!");
 		setConfigAndBackup(fConfig, "Tag.Strings.LastPersonStanding", "Congratulations! You are the last person standing!");
+		setConfigAndBackup(fConfig, "Tag.Strings.NotInGame", "You are not in a Tag game!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNotWInner", "You cannot retrieve someone else's reward!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerClaimedReward", "You have already claimed your reward!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerTagPlayer", "Congratulations! You have tagged %s, they will be warped away. You are one step closer to winning!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerTaggedByPlayer", "You have been tagged by %s. That means it is gameover for you. Better luck next time!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerVote", "You have successfully voted.");
@@ -71,7 +74,7 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInLobby", "You are already in the Lobby, please vote to start the game!");
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInActiveGame", "You are already in an active game of Tag. To leave this game, use /tag leave.");
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyActiveGameWait", "There is already a game of Tag running. Please wait for it to end before joining a new game.");
-		setConfigAndBackup(fConfig, "Tag.Strings.PlayerClearInventory", "Please clear your inventory. Upon clearing it, use /tag join confirm.");
+		setConfigAndBackup(fConfig, "Tag.Strings.InventorySaved", "Your inventory has been saved!");
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyActive", "There is already a game of Tag running.");
 		setConfigAndBackup(fConfig, "Tag.Strings.NotActive", "There is no game of Tag running.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerChangeGameMode", "Changing your game mode to survival.");
@@ -118,13 +121,9 @@ public class ConfigLoader {
 			fConfig.load(ConfigFile.getConfigFile());
 			
 			return fConfig.contains(path) ? fConfig.getString(path) : backup.get(path); 
-		} catch (IOException e) {
+		} catch (IOException | InvalidConfigurationException e) {
 			return backup.get(path);
-		} catch (InvalidConfigurationException e) {
-			e.printStackTrace();
 		}
-
-		return backup.get(path);
 	}
 	
 	/**
