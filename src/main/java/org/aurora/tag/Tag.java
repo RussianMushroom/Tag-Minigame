@@ -3,6 +3,7 @@ package org.aurora.tag;
 import org.aurora.tag.command.TagCommand;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
+import org.aurora.tag.listener.CommandListener;
 import org.aurora.tag.listener.PlayerListener;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -18,6 +19,7 @@ public class Tag extends JavaPlugin {
 		// Create config file
 		ConfigLoader.load(this);
 		getServer().getPluginManager().registerEvents(new PlayerListener(), this);
+		getServer().getPluginManager().registerEvents(new CommandListener(), this);
 
 		// Check if arenas have been enabled, if not, print to console.
 		if(!ConfigLoader.allWarpsActive())
