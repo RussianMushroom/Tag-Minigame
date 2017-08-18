@@ -40,6 +40,9 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Timer.TicksBeforeUpgrade", Integer.valueOf(400));
 		setConfigAndBackup(fConfig, "Tag.Timer.GracePeriod", Integer.valueOf(1000));
 		
+		// Minigame world name
+		setConfigAndBackup(fConfig, "Tag.Minigame,WorldName", "minigames");
+		
 		// Allowed weapons    
 		setConfigAndBackup(fConfig, "Tag.Tools.Baton", "STICK");
 		setConfigAndBackup(fConfig, "Tag.Tools.BatonName", "Baton");
@@ -91,6 +94,8 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.SetSyntax", "Invalid syntax: /tag set [arena | lobby | rip]");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerScore", "%s has won %d time(s) and lost %s time(s)!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNoScore", "%s has not played a game of Tag before!");
+		setConfigAndBackup(fConfig, "Tag.Strings.IllegalCommandUsed", "You are not allowed to use this command while in a game of Tag!");
+		setConfigAndBackup(fConfig, "Tag.Strings.WrongServer", "The Tag-Minigame Arena is not on this server!");
 		
 		save();
 
