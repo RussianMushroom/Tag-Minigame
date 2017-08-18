@@ -8,6 +8,7 @@ import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.Timer;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -23,6 +24,7 @@ import org.bukkit.entity.Player;
 public class TagCommand {
 	
 	private static String lobbyWarp;
+	private static final int DEFAULT_TOP = 10;
 	
 	public static void handle(CommandSender sender, String[] args, Tag plugin) {
 		// Set defaults from config file
@@ -31,6 +33,11 @@ public class TagCommand {
 		// Check if the user has the necessary permissions
 		if(args.length == 0 || args.length > 2) {
 			displayMenu(sender);
+		} else if(!ConfigLoader.getDefault("Tag.Minigame.WorldName").equals("") && 
+			!((Player) sender).getWorld().getName().equalsIgnoreCase(
+					ConfigLoader.getDefault("Tag.Minigame.WorldName"))) {
+				sender.sendMessage(ChatColor.GOLD
+						+ ConfigLoader.getDefault("Tag.Strings.WrongServer"));
 		} else {
 				switch (args[0].toLowerCase()) {
 				// /tag join & /tag join confirm
@@ -158,19 +165,16 @@ public class TagCommand {
 						}	
 					}
 					break;
-				/*
+				
 				// /tag leaderboard
 				case "leaderboard":
 				case "lb":
 					if(!sender.hasPermission("tag.leaderboard"))
 						notEnoughPermission(sender);
 					else {
-						if(!LeaderboardManager.getLeaderboardTop().isPresent())
-							Bukkit.getServer().getLogger().warning("[Tag] leaderboard.yml was not detected!");
-						else 
-							displayLeaderboard(sender, args[1]);
+						displayLeaderboard(sender, (args.length == 2) ? args[1] : DEFAULT_TOP + "");
+							
 					}
-					*/
 			}
 		}	
 	}
@@ -216,6 +220,10 @@ public class TagCommand {
 	} 
 	
 	private static void displayMenu(CommandSender sender) {
+		if(Bukkit.getServer().getPluginManager().isPluginEnabled("ProtocolLib")) {
+			// Add implementation of TextComponent
+		}
+		
 		sender.sendMessage(ChatColor.AQUA 
 				+ String.format(
 				"%s%s%s%s%s%s%s%s%s%s%s",
@@ -249,29 +257,39 @@ public class TagCommand {
 				));
 	}
 	
-	@SuppressWarnings("unused")
 	private static void displayLeaderboard(CommandSender sender, String top) {
-		List<String> leaderboard = LeaderboardManager.getLeaderboardTop().get();
+		int defaultSize = DEFAULT_TOP;
 		
-		// Make sure that there are no NPE's
-		int defaultSize = isInteger(top) ? Integer.parseInt(top) : 10;
-		defaultSize = defaultSize > leaderboard.size() ? leaderboard.size() : defaultSize;
-		
-		StringBuilder sBuilder = new StringBuilder();
-		int count = 0;
-		
-		sBuilder.append(ChatColor.GOLD + "Leaderboard: \n");
-		for(String stats : leaderboard) {
-			String player = stats.split("~")[0];
-			int[] wins = LeaderboardManager.stringToIntArray(stats.split("~")[1].split("_"));
-			sBuilder.append(String.format(ChatColor.GOLD + "[%s]: W:%s L:%s\n", 
-					player, 
-					ChatColor.GREEN + "" + wins[0],
-					ChatColor.RED + "" + wins[1]));
-			count++;
-			if(count == defaultSize)
-				break;
+		if(!isInteger(top))
+			sender.sendMessage(ChatColor.GOLD
+					+ "Invalid number! Using default: " + DEFAULT_TOP);
+		else 
+			defaultSize = Integer.parseInt(top);
+
+		if(!LeaderboardManager.getLeaderboardTop(defaultSize).isPresent()) {
+			Bukkit.getServer().getLogger().warning("[Tag] leaderboard.yml was not detected!");
+			return;
 		}
+		
+		List<String[]> leaderboard = LeaderboardManager.getLeaderboardTop(defaultSize).get();
+		StringBuilder sBuilder = new StringBuilder();
+		int count = 1;
+		
+		sBuilder.append(ChatColor.AQUA + "===============================\n");
+		sBuilder.append(ChatColor.AQUA + "  Tag-Minigame Leaderboard: \n");
+		sBuilder.append(ChatColor.AQUA + "===============================\n");
+		for(String[] stats : leaderboard) {
+			String player = stats[0];
+			int[] wins = LeaderboardManager.stringToIntArray(stats[1].split("_"));
+			
+			sBuilder.append(String.format(ChatColor.AQUA + "  [%d]: %s - %s %s\n", 
+					count,
+					player, 
+					ChatColor.GREEN + "Wins: " + wins[0],
+					ChatColor.RED + "Losses: " + wins[1]));
+			count++;
+		}
+		sBuilder.append(ChatColor.AQUA + "===============================\n");
 		
 		sender.sendMessage(sBuilder.toString());
 	}
