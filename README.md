@@ -29,7 +29,7 @@ The last player standing will receive a cash reward if the server has the plugin
 In order to make sure that this plugin runs smoothly on the server, make sure that the following points have been applied accordingly:
 
 - Set up the Lobby, Arena and RIP-Zone, respectively, with the following commands:
-  - `/tag set [arena | lobby | rip]`
+  - `/tag set [arena | lobby | rip] [arena name]`
 - Make sure that there is a sign in the Lobby with the necessary tag (Default: **[VOTE]**).
   - This enables user-voting in the Lobby.
 - Make sure that there is a sign in the Arena with the necessary tag (Default: **[UPGRADE]**).
