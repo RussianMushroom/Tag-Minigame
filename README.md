@@ -3,26 +3,26 @@ Adds a game of Tag to your server.
 
 ## How to play:
 Use `/tag join` to join the Lobby, which along with the arena and rip-zone should have been set with the command `/tag set [arena | lobby | rip]`. Upon joining the Lobby, each player should interact with a sign which emulates their "vote" to start the game. Once all players have voted, the game will start.
-The last player standing will receive a cash reward if the server has the plugin "Essentials" installed. A randomised reward is also obtainable with the command `/tag reward`.
+The last player standing will receive a cash reward if the server has the plugin "Essentials" installed. Furthermore, with the plugin "RewardLib" the winner receives a credit that they can redeem for an item prize.
 
 ## Commands
 
 | Commands   | Description   | Permission   |
 |------------|---------------|--------------|
 |tag|Displays the current status of the game as well as some additional commands.||
-|tag join    |Player joins the Lobby with this command. |tag.join      |
-|tag start   |**[Admin]** Force starts a game of Tag with the players that have joined.|tag.start     |
+|tag join [arena name]   |Player joins the Lobby with this command. |tag.join      |
+|tag start [arena name]  |**[Admin]** Force starts a game of Tag with the players that have joined.|tag.start     |
 |tag leave   |Allows a player to leave a game of Tag, forfeiting their chance at the reward.|tag.leave|
-|tag stop  |**[Admin]** Force stops a game of Tag, opening a new one. |tag.stop            	|
+|tag stop [arena name]  |**[Admin]** Force stops a game of Tag, opening a new one. |tag.stop            	|
 |tag help      |Displays a helpboard with useful information to the minigame. |tag.help            	|
 |tag leaderboard|Displays all the past winners of Tag|tag.leaderboard|
-
-**NB!!**: `/tag leaderboard` is an upcoming addition and does not feature in the initial release (v1.0.0).
+|**[Upcoming]**tag createarena|**[Admin]**Creates a new arena if it does not already exist|tag.createarena|
 
 ## Additional Features
 
 - All players' inventories are saved before they are cleared and loaded once the game is over.
 - The config file contains externalised text so as to make the game customisable for the server.
+- `/tag leaderboard` keeps track of all the players' wins and losses.
 
 ## Setting Up
 
@@ -37,7 +37,8 @@ In order to make sure that this plugin runs smoothly on the server, make sure th
   
 ## Upcoming Features
 
-- MySQL support to save players' wins as credits that can be redeemed for item prizes.
+- ~~MySQL support to save players' wins as credits that can be redeemed for item prizes.~~ This is now to be supported by a new plugin called RewardLib (Adds global support for reward systems).
+- Support for multiple arenas. Create an arena using `/tag createarena [arena name]`.
   
 ## Credits
 
