@@ -7,16 +7,16 @@ The last player standing will receive a cash reward if the server has the plugin
 
 ## Commands
 
-| Commands   | Description   | Permission   |
-|------------|---------------|--------------|
-|tag|Displays the current status of the game as well as some additional commands.||
-|tag join [arena name]   |Player joins the Lobby with this command. |tag.join      |
-|tag start [arena name]  |**[Admin]** Force starts a game of Tag with the players that have joined.|tag.start     |
-|tag leave   |Allows a player to leave a game of Tag, forfeiting their chance at the reward.|tag.leave|
-|tag stop [arena name]  |**[Admin]** Force stops a game of Tag, opening a new one. |tag.stop            	|
-|tag help      |Displays a helpboard with useful information to the minigame. |tag.help            	|
-|tag leaderboard|Displays all the past winners of Tag|tag.leaderboard|
-|**[Upcoming]** tag createarena|**[Admin]** Creates a new arena if it does not already exist|tag.createarena|
+| Commands   | Description   | Permission   | Implemented |
+|------------|---------------|--------------|------------|
+|tag|Displays the current status of the game as well as some additional commands.||:white_check_mark:|
+|tag join [arena name]   |Player joins the Lobby with this command. |tag.join      |:white_check_mark:|
+|tag start [arena name]  |**[Admin]** Force starts a game of Tag with the players that have joined.|tag.start     |:white_check_mark:|
+|tag leave   |Allows a player to leave a game of Tag, forfeiting their chance at the reward.|tag.leave|:white_check_mark:|
+|tag stop [arena name]  |**[Admin]** Force stops a game of Tag, opening a new one. |tag.stop            	|:white_check_mark:|
+|tag help      |Displays a helpboard with useful information to the minigame. |tag.help            	|:white_check_mark:|
+|tag leaderboard|Displays all the past winners of Tag|tag.leaderboard|:white_check_mark:|
+|tag createarena|**[Admin]** Creates a new arena if it does not already exist|tag.createarena||
 
 ## Additional Features
 
