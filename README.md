@@ -16,7 +16,7 @@ The last player standing will receive a cash reward if the server has the plugin
 |tag stop [arena name]  |**[Admin]** Force stops a game of Tag, opening a new one. |tag.stop            	|
 |tag help      |Displays a helpboard with useful information to the minigame. |tag.help            	|
 |tag leaderboard|Displays all the past winners of Tag|tag.leaderboard|
-|**[Upcoming]**tag createarena|**[Admin]**Creates a new arena if it does not already exist|tag.createarena|
+|**[Upcoming]** tag createarena|**[Admin]** Creates a new arena if it does not already exist|tag.createarena|
 
 ## Additional Features
 
