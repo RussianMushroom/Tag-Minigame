@@ -1,10 +1,10 @@
 package org.aurora.tag.listener;
 
-import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
+import org.aurora.tag.game.TagArena;
 import org.aurora.tag.util.InventoryManager;
-import org.aurora.tag.util.Timer;
+import org.aurora.tag.util.MethodBypass;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -18,6 +18,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerKickEvent;
@@ -36,54 +38,63 @@ public class PlayerListener implements Listener {
 		if(attacker instanceof Player && attacked instanceof Player) {
 			Player tagger = (Player) attacker;
 			Player tagged = (Player) attacked;
+
+			registerHit(tagger, tagged);
 			
-			if(TagManager.getVotedPlayers().contains(tagger)
-					&& TagManager.getVotedPlayers().contains(tagged)
-					&& !TagManager.getRipPlayers().contains(tagger)
-					&& !TagManager.getRipPlayers().contains(tagged)
-					&& TagManager.isActive()
-					&& !Timer.isGrace()) {
-				// Check if tagger used stick
-				if(tagger.getInventory().getItemInMainHand().getType() == Material.STICK) {
-					tagged.playSound(tagged.getLocation(), Sound.ENTITY_GHAST_SHOOT, 10, 1);
-					registerHit(tagger, tagged);
-				}
-			}
 			// If tagger used bow
 		} else if(attacker instanceof Arrow && attacked instanceof Player) {
 			if(((Arrow) attacker).getShooter() instanceof Player) {
 				Player tagger = (Player) ((Arrow) attacker).getShooter();
 				Player tagged = (Player) attacked;
 				
-				if(TagManager.getVotedPlayers().contains(tagger)
-						&& TagManager.getVotedPlayers().contains(tagged)
-						&& !TagManager.getRipPlayers().contains(tagger)
-						&& !TagManager.getRipPlayers().contains(tagged)
-						&& TagManager.isActive()
-						&& !Timer.isGrace())
-					registerHit(tagger, tagged);
+				registerHit(tagger, tagged);
 			}
 		}
 	}      
 	
 	private static void registerHit(Player tagger, Player tagged) {
-		TagManager.addRip(tagged);
-		tagged.sendMessage(ChatColor.GOLD
-				+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTaggedByPlayer"), 
-						tagger.getName()));
-		TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Rip"), tagged);
-		
-		// Add check to see if everyone has been tagged
-		if(TagManager.isLastPersonStanding(tagger)) {
-			tagger.sendMessage(ChatColor.GOLD
-					+ String.format(ConfigLoader.getDefault("Tag.Strings.LastPersonStanding"), 
-							tagged.getName()));
-			GameCenter.registerWinner(tagger);
+
+		if(GameCenter.arenaContainsPlayerAsType("joined", tagger)
+				&& GameCenter.arenaContainsPlayerAsType("joined", tagged)) {
+			TagArena taggerArena = GameCenter.getArena(tagger);
+			TagArena taggedArena = GameCenter.getArena(tagged);
+			
+			if(taggerArena.getArena() == taggedArena.getArena()) {
+				if(GameCenter.arenaContainsPlayerAsType("voted", tagger)
+						&& GameCenter.arenaContainsPlayerAsType("voted", tagged)
+						&& !GameCenter.arenaContainsPlayerAsType("rip", tagger)
+						&& !GameCenter.arenaContainsPlayerAsType("rip", tagged)
+						&& taggerArena.isActive()
+						&& !taggerArena.isGrace()) {
+					// Check if tagger used stick or bow
+					if(tagger.getInventory().getItemInMainHand().getType() == Material.STICK
+							|| tagger.getInventory().getItemInMainHand().getType() == Material.BOW) {
+						tagged.playSound(tagged.getLocation(), Sound.ENTITY_GHAST_SHOOT, 10, 1);
+						
+						taggerArena.addRip(tagged);
+						tagged.sendMessage(ChatColor.GOLD
+								+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTaggedByPlayer"), 
+										tagger.getName()));
+						MethodBypass.legalWarp(ConfigLoader.getDefault(
+								"Tag.Arena." + GameCenter.getArena(tagged).getArena() + ".Warps.Rip"), tagged, taggedArena.getArena());
+						
+						// Add check to see if everyone has been tagged
+						if(taggerArena.isLastPersonStanding(tagger)) {
+							tagger.sendMessage(ChatColor.GOLD
+									+ String.format(ConfigLoader.getDefault("Tag.Strings.LastPersonStanding"), 
+											tagged.getName()));
+							GameCenter.registerWinner(tagger, taggerArena.getArena());
+						} else
+							tagger.sendMessage(ChatColor.GOLD
+									+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"), 
+											tagged.getName()));
+					}
+				}
+			} else {
+				// Tell players that they are not in the same arena
+			}
 		}
-		else
-			tagger.sendMessage(ChatColor.GOLD
-					+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"), 
-							tagged.getName()));
+		
 	}
 	
 	// Listen for player hitting signs
@@ -91,38 +102,38 @@ public class PlayerListener implements Listener {
 	public void onPlayerInteract(PlayerInteractEvent event) {
 		Player player = event.getPlayer();
 		Block clickedBlock;
+		TagArena arena;
 		
 		if(event.hasBlock()) {
 			clickedBlock = event.getClickedBlock();
 			
-			if(TagManager.getJoinedPlayers().contains(player)) {
+			if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
+				arena = GameCenter.getArena(event.getPlayer());
 				if(clickedBlock.getState() instanceof Sign) {
 					Sign sign = (Sign) clickedBlock.getState();
 					
 					// Player clicked sign to vote
 					if(sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToVote")) 
-							&& !TagManager.isActive()) {
-						if(TagManager.vote(player)) {
+							&& !arena.isActive()) {
+						if(arena.vote(player)) {
 							player.sendMessage(ChatColor.GOLD
 											+ ConfigLoader.getDefault("Tag.Strings.PlayerVote"));
-							TagManager.checkStartTag();
-						}
-						else
+							arena.checkStartTag();
+						} else
 							player.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.PlayerAlreadyVote"));
 					}
 					// Player clicked sign to get an upgrade
 					else if (sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToUpgrade"))
-							&& TagManager.isActive()
-							&& TagManager.getVotedPlayers().contains(player)
-							&& !Timer.isGrace()) {
-						if(Timer.upgradeIsActive()) {
-							Timer.startUpgradeTimer();
+							&& arena.isActive()
+							&& arena.getVotedPlayers().contains(player)
+							&& !arena.isGrace()) {
+						if(arena.upgradeIsActive()) {
+							arena.startUpgradeTimer();
 							player.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.PlayerGetUpgrade"));
 							InventoryManager.setUpgrade(player);
-						}
-						else
+						} else
 							player.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.UpgradeNotReady"));
 					}
@@ -134,20 +145,32 @@ public class PlayerListener implements Listener {
 	// Disable teleporting for players in the event
 	@EventHandler
 	public void OnPlayerTeleportEvent(PlayerTeleportEvent event) {
-		if(TagManager.getJoinedPlayers().contains(event.getPlayer())) {
-			if(!TagManager.canWarp()) {
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
+			if(!GameCenter.getArena(event.getPlayer()).canWarp()) {
 				event.setCancelled(true);
 				event.getPlayer().sendMessage(ChatColor.GOLD
 						+ ConfigLoader.getDefault("Tag.Strings.PlayerCannotTeleport"));
 			}
-			TagManager.prohibitWarp();
+			GameCenter.getArena(event.getPlayer()).prohibitWarp();
 		}
+	}
+	
+	// Prevent players from removing armour
+	@EventHandler
+	public void onInventoryClickEvent(InventoryClickEvent event) {
+		if(event.getSlotType() == InventoryType.SlotType.ARMOR
+				&& event.getWhoClicked() instanceof Player) {
+			Player player = (Player) event.getWhoClicked();
+			if(GameCenter.arenaContainsPlayerAsType("joined", player))
+				event.setCancelled(true);
+		}
+			
 	}
 	
 	// Disable game mode-switching while in the event
 	@EventHandler
 	public void onPlayerGameModeChangeEvent(PlayerGameModeChangeEvent event) {
-		if(TagManager.getJoinedPlayers().contains(event.getPlayer())) {
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
 			if(event.getNewGameMode() != GameMode.SURVIVAL) {
 				event.setCancelled(true);
 				event.getPlayer().sendMessage(ChatColor.GOLD
@@ -161,34 +184,32 @@ public class PlayerListener implements Listener {
 	// Kick
 	@EventHandler
 	public void onPlayerKickEvent(PlayerKickEvent event) {
-		if(TagManager.getJoinedPlayers().contains(event.getPlayer()))
-			TagManager.removePlayer(event.getPlayer());
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer()))
+			GameCenter.getArena(event.getPlayer()).removePlayer(event.getPlayer());
 	}
 	
-	// Die (Special case. Here they are just sent to tagrip to wait for the game to end.)
+	// Die
 	@EventHandler
 	public void onEntityDeathEvent(EntityDeathEvent event) {
 		if(event.getEntity() instanceof Player) {
 			Player player = (Player) event.getEntity();
 			
-			if(TagManager.getJoinedPlayers().contains(player)) {
-				TagManager.addRip(player); 
-				TagManager.legalWarp(ConfigLoader.getDefault("Tag.Arena.Rip"), player);
-			}
+			if(GameCenter.arenaContainsPlayerAsType("joined", player))
+				GameCenter.getArena(player).removePlayer(player);
 		}
 	}
 	
 	// Leave
 	@EventHandler 
 	public void onPlayerQuitEvent(PlayerQuitEvent event) {
-		if(TagManager.getJoinedPlayers().contains(event.getPlayer()))
-			TagManager.removePlayer(event.getPlayer());
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer()))
+			GameCenter.getArena(event.getPlayer()).removePlayer(event.getPlayer());
 	}
 	
 	// Disable flight
 	@EventHandler
 	public void onPlayerToggleFlightEvent(PlayerToggleFlightEvent event) {
-		if(TagManager.getJoinedPlayers().contains(event.getPlayer()))
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer()))
 			event.setCancelled(true);
 	}
 	

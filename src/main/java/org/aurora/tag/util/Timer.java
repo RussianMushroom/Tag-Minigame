@@ -1,6 +1,5 @@
 package org.aurora.tag.util;
 
-import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.bukkit.Bukkit;
@@ -14,19 +13,14 @@ import org.bukkit.scheduler.BukkitTask;
  */
 public class Timer {
 	
-	private static BukkitTask upgradeTask;
-	private static BukkitTask graceTask;
-	private static boolean upgradeIsActive = true;
-	private static boolean isGrace = true;
-	
-	 public static void startUpgradeTimer() {
-		 upgradeIsActive = false;
+	 public void startUpgradeTimer(BukkitTask upgradeTask, String arena) {
+		 GameCenter.getArena(arena).setUpgradeIsActive(false);
 		 Runnable run = () -> {
-			 TagManager.getVotedPlayers().forEach(player -> {
-				 player.sendMessage(ChatColor.GOLD
+			 GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+				 player.getPlayer().sendMessage(ChatColor.GOLD
 						 + ConfigLoader.getDefault("Tag.Strings.GetUpgrade"));
 			 });
-			 upgradeIsActive = true;
+			 GameCenter.getArena(arena).setUpgradeIsActive(true);
 		 };
 		 				
 		 upgradeTask = Bukkit.getServer().getScheduler().runTaskLater(
@@ -36,23 +30,25 @@ public class Timer {
 				 );
 	 }
 	 
-	 public static void startGraceTimer() {
-		 isGrace = true;
+	 public void startGraceTimer(BukkitTask graceTask, String arena) {
+		 GameCenter.getArena(arena).setGrace(true);
 		 
-		 TagManager.getVotedPlayers().forEach(player -> {
-			 player.sendMessage(ChatColor.GOLD
+		 GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+			 player.getPlayer().sendMessage(ChatColor.GOLD
 					 + String.format(ConfigLoader.getDefault("Tag.Strings.Grace"),
 					 Integer.parseInt(ConfigLoader.getDefault("Tag.Timer.GracePeriod")) / 20));
 		 });
 			 
 			 Runnable run = () -> {
-				 TagManager.getVotedPlayers().forEach(player -> {
-					 player.sendMessage(ChatColor.GOLD
+				 GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+					 player.getPlayer().sendMessage(ChatColor.GOLD
 							 + ConfigLoader.getDefault("Tag.Strings.NoGrace"));
-					 player.playSound(player.getLocation(), Sound.ENTITY_LIGHTNING_THUNDER, 10, 1);
+					 player.getPlayer().playSound(
+							 player.getPlayer().getLocation(),
+							 Sound.ENTITY_LIGHTNING_THUNDER, 10, 1);
 				 });
 
-				 isGrace = false;
+				 GameCenter.getArena(arena).setGrace(false);
 			 };
 				 
 			 graceTask = Bukkit.getServer().getScheduler().runTaskLater(
@@ -61,16 +57,16 @@ public class Timer {
 					 Long.parseLong(ConfigLoader.getDefault("Tag.Timer.GracePeriod")));
 	 }
 	 
-	 public static void delayStart() {
+	 public void delayStart(String arena) {
 		// Set game to active
-		TagManager.activate();
-		TagManager.getVotedPlayers().forEach(player -> {
-			 player.sendMessage(ChatColor.GOLD
+		GameCenter.getArena(arena).activate();
+		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+			 player.getPlayer().sendMessage(ChatColor.GOLD
 					 + String.format(ConfigLoader.getDefault("Tag.Strings.NotifyPlayersGameStart"),
 							 Integer.parseInt(ConfigLoader.getDefault("Tag.Timer.TicksBeforeTagStart")) / 20));
 		 });
 		
-		 Runnable run = () -> GameCenter.start();
+		 Runnable run = () -> GameCenter.start(arena);
 		 
 		 Bukkit.getServer().getScheduler().runTaskLater(
 				 Bukkit.getServer().getPluginManager().getPlugin("Tag"),
@@ -78,20 +74,4 @@ public class Timer {
 				 Long.parseLong(ConfigLoader.getDefault("Tag.Timer.TicksBeforeTagStart"))
 				 );
 	 }
-	 
-	public static void disableTimers() {
-		if(upgradeTask != null)
-			upgradeTask.cancel();
-		if(graceTask != null)
-			graceTask.cancel();
-	}
-	
-	public static boolean upgradeIsActive() {
-		return upgradeIsActive;
-	}
-	
-	public static boolean isGrace() {
-		return isGrace;
-	}
-	
 }

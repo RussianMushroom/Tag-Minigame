@@ -1,13 +1,14 @@
 package org.aurora.tag.command;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.aurora.tag.Tag;
-import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
+import org.aurora.tag.game.TagArena;
 import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.InventoryManager;
-import org.aurora.tag.util.Timer;
+import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.GameMode;
@@ -23,15 +24,12 @@ import org.bukkit.entity.Player;
  */
 public class TagCommand {
 	
-	private static String lobbyWarp;
 	private static final int DEFAULT_TOP = 10;
 	
 	public static void handle(CommandSender sender, String[] args, Tag plugin) {
-		// Set defaults from config file
-		setDefaults();
 		
 		// Check if the user has the necessary permissions
-		if(args.length == 0 || args.length > 2) {
+		if(args.length == 0 || args.length > 3) {
 			displayMenu(sender);
 		} else if(!ConfigLoader.getDefault("Tag.Minigame.WorldName").equals("") && 
 			!((Player) sender).getWorld().getName().equalsIgnoreCase(
@@ -48,27 +46,54 @@ public class TagCommand {
 								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
 					else {
 						if(sender.hasPermission("tag.join")) {
-							if(TagManager.getJoinedPlayers().contains((Player) sender)
-									&& !TagManager.getVotedPlayers().contains((Player) sender)
-									&& !TagManager.isActive())
+							TagArena arena;
+							if(args.length != 2)
 								sender.sendMessage(ChatColor.GOLD
-										+ ConfigLoader.getDefault("Tag.Strings.AlreadyInLobby"));
-							else if(TagManager.getVotedPlayers().contains((Player) sender)
-									&& !TagManager.isActive())
-								sender.sendMessage(ChatColor.GOLD
-										+ ConfigLoader.getDefault("Tag.Strings.PlayerAlreadyVote"));
-							else if(TagManager.getVotedPlayers().contains((Player) sender)
-									&& TagManager.isActive())
-								sender.sendMessage(ChatColor.GOLD
-										+ ConfigLoader.getDefault("Tag.Strings.AlreadyInActiveGame"));
-							else if(TagManager.isActive())
-								sender.sendMessage(ChatColor.GOLD
-										+ ConfigLoader.getDefault("Tag.Strings.AlreadyActiveGameWait"));
+									+ ConfigLoader.getDefault("Tag.Strings.JoinSyntax"));
+
 							else {
-								handleJoin((Player) sender);
-								sender.sendMessage(ChatColor.GOLD
-										+ ConfigLoader.getDefault("Tag.Strings.InventorySaved"));
+								if(GameCenter.availableArenas().contains(args[1])) {
+									if(GameCenter.getArena(args[1]) == null) {
+										arena = new TagArena(args[1]);
+										GameCenter.addGame(arena);
+									} else 
+										arena = GameCenter.getArena(args[1]);
+									
+									if(GameCenter.arenaContainsPlayerAsType("joined", (Player) sender))
+											sender.sendMessage(ChatColor.GOLD
+													+ ConfigLoader.getDefault("Tag.Strings.AlreadyInActiveGame"));
+									else if(arena.getJoinedPlayers().contains((Player) sender)
+											&& !arena.getVotedPlayers().contains((Player) sender)
+											&& !arena.isActive())
+										sender.sendMessage(ChatColor.GOLD
+												+ ConfigLoader.getDefault("Tag.Strings.AlreadyInLobby"));
+									else if(arena.getVotedPlayers().contains((Player) sender)
+											&& !arena.isActive())
+										sender.sendMessage(ChatColor.GOLD
+												+ ConfigLoader.getDefault("Tag.Strings.PlayerAlreadyVote"));
+									else if((arena.getVotedPlayers().contains((Player) sender) && arena.isActive()))
+										sender.sendMessage(ChatColor.GOLD
+												+ ConfigLoader.getDefault("Tag.Strings.AlreadyInActiveGame"));
+									else if(arena.isActive())
+										sender.sendMessage(ChatColor.GOLD
+												+ ConfigLoader.getDefault("Tag.Strings.AlreadyActiveGameWait"));
+									else {  
+										if(GameCenter.arenaHasAllArenasSet(arena)) {
+											handleJoin((Player) sender, arena);
+											sender.sendMessage(ChatColor.GOLD
+													+ ConfigLoader.getDefault("Tag.Strings.InventorySaved"));
+										} 
+										else
+											sender.sendMessage(ChatColor.GOLD
+													+ ConfigLoader.getDefault("Tag.Strings.ArenaNotSet"));
+									}
+									
+								} else {
+									sender.sendMessage(ChatColor.GOLD
+											+ ConfigLoader.getDefault("Tag.Strings.ArenaDoesNotExist"));
+								}		
 							}
+							
 						} else
 							notEnoughPermission(sender);	
 					}	
@@ -76,12 +101,19 @@ public class TagCommand {
 					// /tag start
 				case "start":	
 					if(sender.hasPermission("tag.start")) {
-						if(TagManager.isActive())
+						if(args.length == 2) {
+							if(GameCenter.getArena(args[1]) != null) {
+								if(GameCenter.getArena(args[1]).isActive())
+									sender.sendMessage(ChatColor.GOLD
+											+ ConfigLoader.getDefault("Tag.Strings.AlreadyActive"));
+								else {
+									GameCenter.getArena(args[1]).migrate();
+									GameCenter.getArena(args[1]).delayStart();
+								}
+							}
+						} else {
 							sender.sendMessage(ChatColor.GOLD
-									+ ConfigLoader.getDefault("Tag.Strings.AlreadyActive"));
-						else {
-							TagManager.migrate();
-							Timer.delayStart();
+									+ ConfigLoader.getDefault("Tag.Strings.InventorySaved"));
 						}
 					} else
 						notEnoughPermission(sender);
@@ -100,14 +132,17 @@ public class TagCommand {
 								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
 					else {
 						if(sender.hasPermission("tag.leave")) {
-							if(!TagManager.getJoinedPlayers().contains((Player) sender))
+							if(!GameCenter.arenaContainsPlayerAsType("joined", (Player) sender))
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerNotInGame"));
 							else {
-								TagManager.removePlayer((Player) sender);
+								MethodBypass.legalWarp("back", (Player) sender,
+										GameCenter.getArena((Player) sender).getArena());
+								InventoryManager.restoreInv(
+										(Player) sender, GameCenter.getArena((Player) sender));
+								GameCenter.getArena((Player) sender).removePlayer((Player) sender);
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"));
-								((Player) sender).performCommand("back");
 							}
 						} else
 							notEnoughPermission(sender);
@@ -116,11 +151,26 @@ public class TagCommand {
 				// /tag stop
 				case "stop":
 					if(sender.hasPermission("tag.stop")) {
-						if(!TagManager.isActive())
-							sender.sendMessage(ChatColor.GOLD
-									+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
-						else
-							GameCenter.stop();
+						if(args.length == 2) {
+							if(GameCenter.getArena(args[1]) != null) {
+								TagArena arena = GameCenter.getArena(args[1]);
+								
+								if(!arena.isActive())
+									sender.sendMessage(ChatColor.GOLD
+											+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
+								else
+									GameCenter.stop(arena.getArena());
+							}
+							
+						} else if(args.length == 1) {
+							if(GameCenter.availableArenas().isEmpty())
+								sender.sendMessage(ChatColor.GOLD
+										+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
+							else
+								GameCenter.getActiveGames().forEach(arena -> {
+									GameCenter.stop(arena.getArena());
+								});
+						}
 					} else
 						notEnoughPermission(sender);
 					
@@ -133,39 +183,24 @@ public class TagCommand {
 					else if(!sender.hasPermission("tag.set")) 
 						notEnoughPermission(sender);
 					else {
-						if(args.length != 2) {
+						if(args.length != 3) {
 							sender.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.SetSyntax"));
 						} else {
-							if (args[1].equalsIgnoreCase("arena")) 
-								setArena("Tag.Arena.Arena", sender);					
-							else if(args[1].equalsIgnoreCase("lobby")) 
-								setArena("Tag.Arena.Lobby", sender);
-							else if(args[1].equalsIgnoreCase("rip")) 
-								setArena("Tag.Arena.Rip", sender);
+							if(!ConfigLoader.getFileConfig().contains("Tag.Arena." + args[2]))
+								sender.sendMessage(ChatColor.GOLD
+										+ ConfigLoader.getDefault("Tag.Strings.ArenaDoesNotExist"));
+							else {
+								if (args[1].equalsIgnoreCase("arena")) 
+									setArena("Tag.Arena." + args[2] + ".Warps.Arena", sender);					
+								else if(args[1].equalsIgnoreCase("lobby")) 
+									setArena("Tag.Arena." + args[2] + ".Warps.Lobby", sender);
+								else if(args[1].equalsIgnoreCase("rip")) 
+									setArena("Tag.Arena." + args[2] + ".Warps.Rip", sender);
+							}
 						}
 					}
 					break;
-				// /tag reward 
-				case "reward":
-				case "r":
-					if(sender instanceof ConsoleCommandSender)
-						sender.sendMessage(ChatColor.GOLD
-								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
-					else if(!sender.hasPermission("tag.reward"))
-						notEnoughPermission(sender);
-					else {
-						if(!TagManager.getWinners().contains((Player) sender))
-							sender.sendMessage(ChatColor.GOLD
-									+ ConfigLoader.getDefault("Tag.Strings.PlayerNotWinner"));
-						else {
-							((Player) sender).getInventory()
-								.addItem(InventoryManager.getReward((Player) sender));
-							TagManager.claim((Player) sender);
-						}	
-					}
-					break;
-				
 				// /tag leaderboard
 				case "leaderboard":
 				case "lb":
@@ -175,6 +210,69 @@ public class TagCommand {
 						displayLeaderboard(sender, (args.length == 2) ? args[1] : DEFAULT_TOP + "");
 							
 					}
+					break;
+				case "createarena":
+				case "ca":
+					if(!sender.hasPermission("tag.createarena"))
+						notEnoughPermission(sender);
+					else if(args.length != 2)
+						sender.sendMessage(ChatColor.GOLD
+								+ ConfigLoader.getDefault("Tag.Strings.ArenaDoesNotExist"));
+					else {
+						if(!GameCenter.availableArenas().contains(args[1])) {
+							ConfigLoader.set("Tag.Arena." + args[1], "");
+							ConfigLoader.set("Tag.Arena." + args[1] + ".MaxPlayers", "10");
+							sender.sendMessage(ChatColor.GOLD
+									+ ConfigLoader.getDefault("Tag.Strings.ArenaCreated"));
+						} else {
+							sender.sendMessage(ChatColor.GOLD
+									+ ConfigLoader.getDefault("Tag.Strings.ArenaAlreadyExists"));
+						}
+					}
+					break;
+				case "listarena":
+				case "la":
+					if(!sender.hasPermission("tag.createarena"))
+						notEnoughPermission(sender);
+					else {
+						if(GameCenter.availableArenas().isEmpty()) {
+							String listedArenas = ConfigLoader.getDefault("Tag.Strings.AreNoArenas");
+							sender.sendMessage(ChatColor.GOLD
+									+ listedArenas);
+						} else {
+							String listedArenas = ConfigLoader.getDefault("Tag.Strings.ArenasList");
+							sender.sendMessage(ChatColor.GOLD
+									+ String.format(listedArenas, GameCenter.availableArenas()
+											.stream()
+											.collect(Collectors.joining(", "))));
+						}	
+					}
+					break;
+				case "status":
+					if(!sender.hasPermission("tag.status"))
+						notEnoughPermission(sender);
+					else {
+						if(args.length == 2) {
+							if(GameCenter.getArena(args[1]) != null) {
+								TagArena arena = GameCenter.getArena(args[1]);
+								sender.sendMessage(ChatColor.AQUA 
+										+ String.format(
+										"%s%s%s%s%s%s",
+										"===============================\n",
+										"  Tag-Minigame " + args[1] + ": \n",
+										"===============================\n",
+										"  Players joined: " + arena.getJoinedPlayers().size() + "/" + arena.getMaxPlayers() + "\n",
+										"  Status: " + (arena.isActive() ? ChatColor.RED + "ACTIVE" : ChatColor.GREEN + "OPEN"),
+										"===============================\n"
+										));
+							}
+							
+						}
+						else 
+							sender.sendMessage(ChatColor.GOLD
+									+ ConfigLoader.getDefault("Tag.Strings.StatusSyntax"));
+					}
+					break;
 			}
 		}	
 	}
@@ -195,19 +293,18 @@ public class TagCommand {
 				+ ConfigLoader.getDefault("Tag.Strings.ArenaAdded"));
 	}
 	
-	private static void setDefaults() {
-		lobbyWarp = ConfigLoader.getDefault("Tag.Arena.Lobby");
-	}
-	
-	private static void handleJoin(Player player) {
-		if(TagManager.addPlayer(player)) {
+	private static void handleJoin(Player player, TagArena arena) {
+		if(arena.addPlayer(player)) {
 			if(player.getGameMode() != GameMode.SURVIVAL) {
 				player.sendMessage(ChatColor.GOLD
 						+ ConfigLoader.getDefault("Tag.Strings.PlayerChangeGameMode"));
 				player.setGameMode(GameMode.SURVIVAL);
 			}
 			
-			TagManager.legalWarp(lobbyWarp, player);
+			MethodBypass.legalWarp(ConfigLoader.getDefault(
+					"Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Lobby"),
+					player,
+					GameCenter.getArena(player).getArena());
 			player.sendMessage(ChatColor.GOLD + ConfigLoader.getDefault("Tag.Strings.PlayerWarpLobby"));
 		} else
 			player.sendMessage(ChatColor.GOLD 
@@ -226,20 +323,14 @@ public class TagCommand {
 		
 		sender.sendMessage(ChatColor.AQUA 
 				+ String.format(
-				"%s%s%s%s%s%s%s%s%s%s%s",
+				"%s%s%s%s%s%s%s%s",
 				"===============================\n",
 				"  Tag-Minigame Menu: \n",
 				"===============================\n",
-				"  /tag join     Join the tag lobby.\n",
-				"  /tag start    Force start the tag minigame.\n",
-				"  /tag leave   Exit from a running game of tag.\n",
-				"  /tag help     Learn how to play the game.\n",
-				" \n",
-				"     Status: " + (TagManager.isActive() 
-					? ChatColor.RED + "ACTIVE.\n"
-					: ChatColor.GREEN + "OPEN.\n"),
-				ChatColor.AQUA + "     " + TagManager.getJoinedPlayers().size() 
-				+ "/" + TagManager.getMaxPlayers() + " joined.\n",
+				"  /tag join [arena name]\n Join the tag lobby.\n",
+				"  /tag start [arena name]\n Force start the tag minigame.\n",
+				"  /tag leave  Exit from a running game of tag.\n",
+				"  /tag help  Learn how to play the game.\n",
 				"===============================\n"
 				));
 	}
@@ -271,23 +362,28 @@ public class TagCommand {
 			return;
 		}
 		
-		List<String[]> leaderboard = LeaderboardManager.getLeaderboardTop(defaultSize).get();
+		List<List<String[]>> leaderboard = LeaderboardManager.getLeaderboardTop(defaultSize).get();
 		StringBuilder sBuilder = new StringBuilder();
 		int count = 1;
 		
 		sBuilder.append(ChatColor.AQUA + "===============================\n");
 		sBuilder.append(ChatColor.AQUA + "  Tag-Minigame Leaderboard: \n");
 		sBuilder.append(ChatColor.AQUA + "===============================\n");
-		for(String[] stats : leaderboard) {
-			String player = stats[0];
-			int[] wins = LeaderboardManager.stringToIntArray(stats[1].split("_"));
+		for(List<String[]> stats : leaderboard) {
+			if(count > defaultSize)
+				break;
 			
-			sBuilder.append(String.format(ChatColor.AQUA + "  [%d]: %s - %s %s\n", 
-					count,
-					player, 
-					ChatColor.GREEN + "Wins: " + wins[0],
-					ChatColor.RED + "Losses: " + wins[1]));
-			count++;
+			for(String[] currentStat : stats) {
+				String player = currentStat[0];
+				int[] wins = LeaderboardManager.stringToIntArray(currentStat[1].split("_"));
+				
+				sBuilder.append(String.format(ChatColor.AQUA + "  [%d]: %s - %s %s\n", 
+						count,
+						player, 
+						ChatColor.GREEN + "Wins: " + wins[0],
+						ChatColor.RED + "Losses: " + wins[1]));
+				count++;
+			}
 		}
 		sBuilder.append(ChatColor.AQUA + "===============================\n");
 		

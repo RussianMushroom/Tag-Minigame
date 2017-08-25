@@ -27,8 +27,6 @@ public class ConfigLoader {
 		Tag plugin = tag;
 		fConfig = plugin.getConfig();
 		
-		setConfigAndBackup(fConfig, "Tag.MaxPlayers", Integer.valueOf(10));
-		
 		// Default arenas
 		// These are set by /tag set arena|rip|lobby - check if they exists upon enable
 		// setConfigAndBackup(fConfig, "Tag.Arena.Lobby", "");
@@ -41,7 +39,7 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Timer.GracePeriod", Integer.valueOf(1000));
 		
 		// Minigame world name
-		setConfigAndBackup(fConfig, "Tag.Minigame,WorldName", "minigames");
+		setConfigAndBackup(fConfig, "Tag.Minigame.WorldName", "");
 		
 		// Allowed weapons    
 		setConfigAndBackup(fConfig, "Tag.Tools.Baton", "STICK");
@@ -53,13 +51,16 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Sign.SignToUpgrade", "[UPGRADE]");
 		
 		// Economy
-		setConfigAndBackup(fConfig, "Tag.Rewards.Money", Integer.valueOf(50));
+		setConfigAndBackup(fConfig, "Tag.Rewards.Money", Integer.valueOf(10));
+		
+		// Arenas
+		setConfigAndBackup(fConfig, "Tag.Arena", "");
 		
 		// Externalise strings
 		setConfigAndBackup(fConfig, "Tag.Strings.NotifyPlayersGameStart", "This game of Tag is starting in %d seconds!");
 		setConfigAndBackup(fConfig, "Tag.Strings.LastPersonStanding", "Congratulations! You are the last person standing!");
 		setConfigAndBackup(fConfig, "Tag.Strings.NotInGame", "You are not in a Tag game!");
-		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNotWInner", "You cannot retrieve someone else's reward!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNotWinner", "You cannot retrieve someone else's reward!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerClaimedReward", "You have already claimed your reward!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerTagPlayer", "Congratulations! You have tagged %s, they will be warped away. You are one step closer to winning!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerTaggedByPlayer", "You have been tagged by %s. That means it is gameover for you. Better luck next time!");
@@ -70,8 +71,8 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotTeleport", "You cannot teleport while you are in a Tag game. To leave this game, use /tag leave.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerCannotChangeGameMode", "You cannot change your game mode while you are in a Tag game. To leave this game, use /tag leave.");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerHasLeft", "%s has left the game.");
-		setConfigAndBackup(fConfig, "Tag.Strings.GameStart", "[Tag] A new game of Tag has been started. Please wait for this game to end before joining a new one.");
-		setConfigAndBackup(fConfig, "Tag.Strings.GameStop", "[Tag] This game of Tag has ended! You may now join a new game.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GameStart", "[Tag] A new game of Tag has been started in the arena %s. Please wait for this game to end before joining a new one.");
+		setConfigAndBackup(fConfig, "Tag.Strings.GameStop", "[Tag] This game of Tag has ended in the arena %s! You may now join a new game.");
 		setConfigAndBackup(fConfig, "Tag.Strings.BroadcastWinner", "[Tag] %s has defeated all their foes to win this game of Tag!");
 		setConfigAndBackup(fConfig, "Tag.Strings.ConsoleUser", "This command cannot be used from the console!");
 		setConfigAndBackup(fConfig, "Tag.Strings.AlreadyInLobby", "You are already in the Lobby, please vote to start the game!");
@@ -87,30 +88,43 @@ public class ConfigLoader {
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNotInGame", "You are not in a Tag game.");
 		setConfigAndBackup(fConfig, "Tag.Strings.GetUpgrade", "Upgrades are now active!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerLeaves", "You have left the Tag game. You will be warped back to your last known location.");
-		setConfigAndBackup(fConfig, "Tag.Strings.MinPlayers", "There need to be at least two players to start a game fo Tag.");
+		setConfigAndBackup(fConfig, "Tag.Strings.MinPlayers", "There need to be at least two players to start a game of Tag.");
 		setConfigAndBackup(fConfig, "Tag.Strings.Grace", "You now have %d seconds to get into position. Good luck!");
 		setConfigAndBackup(fConfig, "Tag.Strings.NoGrace", "The grace period is over!");
 		setConfigAndBackup(fConfig, "Tag.Strings.ArenaAdded", "The warp was successfully added!");
-		setConfigAndBackup(fConfig, "Tag.Strings.SetSyntax", "Invalid syntax: /tag set [arena | lobby | rip]");
+		setConfigAndBackup(fConfig, "Tag.Strings.SetSyntax", "Invalid syntax: /tag set [arena | lobby | rip] [arena name].");
+		setConfigAndBackup(fConfig, "Tag.Strings.JoinSyntax", "Invalid syntax: /tag join [arena name].");
+		setConfigAndBackup(fConfig, "Tag.Strings.CreateSyntax", "Invalid syntax: /tag createarena [arena name].");
+		setConfigAndBackup(fConfig, "Tag.Strings.StartSyntax", "Invalid Syntax: /tag start [arena name]");
+		setConfigAndBackup(fConfig, "Tag.Strings.StatusSyntax", "Invalid Syntax: /tag status [arena name]");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerScore", "%s has won %d time(s) and lost %s time(s)!");
 		setConfigAndBackup(fConfig, "Tag.Strings.PlayerNoScore", "%s has not played a game of Tag before!");
 		setConfigAndBackup(fConfig, "Tag.Strings.IllegalCommandUsed", "You are not allowed to use this command while in a game of Tag!");
 		setConfigAndBackup(fConfig, "Tag.Strings.WrongServer", "The Tag-Minigame Arena is not on this server!");
+		setConfigAndBackup(fConfig, "Tag.Strings.PlayerReceiveMoney", "You have been awarded %s currency points for winning! Don't spend it all in one place!");
+		setConfigAndBackup(fConfig, "Tag.Strings.ArenaDoesNotExist", "This arena does not exist, please use /tag createarena [arena name] to create one!");
+		setConfigAndBackup(fConfig, "Tag.Strings.ArenaCreated", "The arena has been created!");
+		setConfigAndBackup(fConfig, "Tag.Strings.ArenaAlreadyExists", "This arena already exists.");
+		setConfigAndBackup(fConfig, "Tag.Strings.ArenasList", "Available arenas: %s");
+		setConfigAndBackup(fConfig, "Tag.Strings.AreNoArenas", "There are no arenas!");
+		setConfigAndBackup(fConfig, "Tag.Strings.ArenaNotSet", "This arena does not have all its warps set!");
 		
-		save();
+		save(false);
 
 	}
 	
 	public static void set(String path, String value) {
 		setConfigAndBackup(fConfig, path, value);
-		save();
+		save(true);
 	}
 	
 	
-	private static void save() {
+	private static void save(boolean overwrite) {
 		try {
 			File configFile = new File(ConfigFile.getConfigPath() + File.separator + ConfigFile.CONFIG);
-			fConfig.save(configFile);
+			
+			if(overwrite || !configFile.exists())
+				fConfig.save(configFile);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -144,12 +158,6 @@ public class ConfigLoader {
 			backup.put(path, value.toString());
 		else
 			backup.replace(path, value.toString());
-	}
-	
-	public static boolean allWarpsActive() {
-		return fConfig.contains("Tag.Arena.Arena")
-				&& fConfig.contains("Tag.Arena.Rip")
-				&& fConfig.contains("Tag.Arena.Lobby");
 	}
 	
 	public static FileConfiguration getFileConfig() {

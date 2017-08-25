@@ -1,6 +1,7 @@
 package org.aurora.tag.leaderboard;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -19,15 +20,14 @@ public class LeaderboardManager {
 	private static YamlConfiguration yConfig = getYamlConfig();
 	
 	public static void add(Player player, boolean won) {
-		int[] playerWin;
+		int[] playerWin = new int[2];
 		
 		if(getPlayerStat(player).isPresent()) {
 			playerWin = getPlayerStat(player).get();
-			
 			if(won)
-				playerWin[0]++;
+				playerWin[0] = playerWin[0]++;
 			else 
-				playerWin[1]++;
+				playerWin[1] = playerWin[1]++;
 		} else
 			playerWin = won ? new int[] {1, 0} :  new int[] {0, 1};
 			
@@ -35,21 +35,30 @@ public class LeaderboardManager {
 			save(player, playerWin[0] + "_" + playerWin[1]);
 	}
 	
-	public static Optional<List<String[]>> getLeaderboardTop(int maxSize) {
+	public static Optional<List<List<String[]>>> getLeaderboardTop(int maxSize) {
 		try {
 			yConfig.load(ConfigFile.getLeaderboardFile());
 			
 			if(!yConfig.contains("Leaderboard")) {
 				return Optional.empty();
 			} else {	
-				Map<List<Integer>, String[]> leaderboard = new HashMap<>();
+				Map<List<Integer>, List<String[]>> leaderboard = new HashMap<>();
 				
 				 yConfig.getConfigurationSection("Leaderboard").getKeys(false).forEach(key -> {
-					 
 					 int[] playerScore = stringToIntArray(yConfig.getString("Leaderboard." + key).split("_"));
 					 String[] scoreArray = new String[] {key, yConfig.getString("Leaderboard." + key)};
+					 List<Integer> keys = Arrays.asList(playerScore[0], playerScore[1]);
 					 
-					 leaderboard.put(Arrays.asList(playerScore[0], playerScore[1]), scoreArray);
+					 if(leaderboard.containsKey(keys)) {
+						 List<String[]> sameRankedPlayers = leaderboard.get(keys);
+						 sameRankedPlayers.add(scoreArray);
+						 leaderboard.replace(keys, sameRankedPlayers);
+					 } else {
+						 List<String[]> baseRankedPlayers = leaderboard.get(keys) != null ? leaderboard.get(keys)
+								 : new ArrayList<>();
+						 baseRankedPlayers.add(scoreArray);
+						 leaderboard.put(keys, baseRankedPlayers);
+					 }
 				 });
 				 
 				 if(leaderboard.size() < maxSize)

@@ -1,7 +1,7 @@
 package org.aurora.tag.listener;
 
-import org.aurora.tag.TagManager;
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.game.GameCenter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -16,7 +16,8 @@ public class CommandListener implements Listener{
 		String command = event.getMessage().split(" ")[0];
 		PluginManager pManager = Bukkit.getServer().getPluginManager();
 		
-		if(TagManager.getJoinedPlayers().contains(event.getPlayer())) {
+		// Blanket check: check if player has joined any arena
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
 			if(pManager.isPluginEnabled("Essentials")) 
 				prohibitEssentials(command, event);
 		}
