@@ -1,6 +1,6 @@
 name: Tag
 description: Introduces a Tag multiplayer minigame to the server. 
-version: 1.1.0
+version: 1.5.5
 main: org.aurora.tag.Tag
 authors: ["RussianMushroom"]
 
@@ -23,5 +23,9 @@ permissions:
     default: op
   tag.leaderboard:
     default: op
-  tag.reward:
+  tag.createarena:
+    default: op
+  tag.listarena:
+    default: op
+  tag.status:
     default: op
