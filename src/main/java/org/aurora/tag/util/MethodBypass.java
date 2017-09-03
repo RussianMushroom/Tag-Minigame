@@ -18,20 +18,23 @@ public class MethodBypass {
 					"[Tag] This warp could not be loaded from the config file, please make sure that all warps have been set."
 							+ "To do such, use /tag set [arena | lobby | rip]");
 			return;
-		} else if(warp.equalsIgnoreCase("back")) {
+		} else if(warp.equalsIgnoreCase("spawn")) {
 			if(!GameCenter.getArena(arena).canWarp())
 				GameCenter.getArena(arena).setCanWarp(true);
-			player.performCommand("back");
+			
+			player.performCommand("spawn");
 			return;
+		} else {
+			String worldName = warp.split("_")[0];
+			String[] warpList = warp.split("_")[1].split(",");
+			Location arenaLocation = new Location(Bukkit.getWorld(worldName), Integer.parseInt(warpList[0]),
+					Integer.parseInt(warpList[1]), Integer.parseInt(warpList[2]));
+			
+			if(!GameCenter.getArena(arena).canWarp())
+				GameCenter.getArena(arena).setCanWarp(true);
+			
+			player.teleport(arenaLocation);
 		}
-
-		String worldName = warp.split("_")[0];
-		String[] warpList = warp.split("_")[1].split(",");
-		Location arenaLocation = new Location(Bukkit.getWorld(worldName), Integer.parseInt(warpList[0]),
-				Integer.parseInt(warpList[1]), Integer.parseInt(warpList[2]));
-		if(!GameCenter.getArena(arena).canWarp())
-			GameCenter.getArena(arena).setCanWarp(true);
-		player.teleport(arenaLocation);
 	}
 
 }
