@@ -21,6 +21,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -139,7 +140,7 @@ public class PlayerListener implements Listener {
 		Block clickedBlock;
 		TagArena arena;
 		
-		if(event.hasBlock()) {
+		if(event.hasBlock() && event.getAction() == Action.RIGHT_CLICK_BLOCK) {
 			clickedBlock = event.getClickedBlock();
 			
 			
