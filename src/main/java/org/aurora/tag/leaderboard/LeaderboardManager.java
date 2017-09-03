@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.aurora.tag.config.ConfigFile;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -24,10 +25,11 @@ public class LeaderboardManager {
 		
 		if(getPlayerStat(player).isPresent()) {
 			playerWin = getPlayerStat(player).get();
+			
 			if(won)
-				playerWin[0] = playerWin[0]++;
+				playerWin[0] += 1;
 			else 
-				playerWin[1] = playerWin[1]++;
+				playerWin[1] += 1;
 		} else
 			playerWin = won ? new int[] {1, 0} :  new int[] {0, 1};
 			
