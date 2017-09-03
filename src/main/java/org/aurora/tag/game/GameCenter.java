@@ -4,15 +4,16 @@ package org.aurora.tag.game;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.aurora.tag.command.TagCommand;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 /**
@@ -28,13 +29,14 @@ public class GameCenter {
 		Bukkit.broadcastMessage(ChatColor.GOLD
 				+ String.format(
 						ConfigLoader.getDefault("Tag.Strings.GameStart"),
-						arena
-				));
+						TagCommand.toProperCase(arena)));
 		
 		// Warp everyone to the arena
 		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
 			MethodBypass.legalWarp(
-					ConfigLoader.getDefault("Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Arena"), player, arena);
+					ConfigLoader.getDefault("Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Arena"), 
+					player, 
+					arena);
 		}); 
 		
 		// Clear all inventories and apply items 
@@ -47,26 +49,30 @@ public class GameCenter {
 		GameCenter.getArena(arena).startGraceTimer();
 	}
 	
-	public static void stop(String arena) {
-		if(GameCenter.getArena(arena).isActive())
+	public static void stop(String arena, boolean allowRejoinBySign) {
+		if(GameCenter.getArena(arena).isActive()) {
 			Bukkit.broadcastMessage(ChatColor.GOLD
 					+ String.format(
 							ConfigLoader.getDefault("Tag.Strings.GameStop"),
-							arena));
-		
-		forceStop(arena);
+							TagCommand.toProperCase(arena)));
+			
+			forceStop(arena, allowRejoinBySign);
+		}
 	}
 	
-	public static void forceStop(String arena) {
+	public static void forceStop(String arena, boolean allowRejoinBySign) {
 		// Clear inventories and set game to inactive
 		InventoryManager.clearPlayerInventory(true, arena);
-		getArena(arena).deactivate();
+		if(allowRejoinBySign)
+			getArena(arena).deactivateWithVote();
+		else
+			getArena(arena).deactivate();
 		GameCenter.getArena(arena).disableTimers();
 	}
 	
 	public static void stopAll() {
 		activeGames.forEach(tagArena -> {
-			forceStop(tagArena.getArena());
+			forceStop(tagArena.getArena(), false);
 		});
 	}
 	
@@ -76,18 +82,12 @@ public class GameCenter {
 		giveMoney(player);
 		addCredits(player);
 		
-		getArena(arena).getVotedPlayers().forEach(p -> {
-			MethodBypass.legalWarp(
-					ConfigLoader.getDefault("Tag.Arena." + GameCenter.getArena(p).getArena() + ".Warps.Lobby"), p, arena);
-			LeaderboardManager.add(p.getPlayer(), false);
-		});
-		
 		// Broadcast the player's win to the server
 		Bukkit.broadcastMessage(ChatColor.GOLD
 				+ String.format(ConfigLoader.getDefault("Tag.Strings.BroadcastWinner"), player.getName()));
 		
-		// Reopen the game
-		stop(arena);
+		// Reopen the game however dont remove players from Joined list so that they can rejoin by clicking the sign
+		stop(arena, true);
 	}
 
 	private static void giveMoney(Player player) {
@@ -186,9 +186,9 @@ public class GameCenter {
 	}
 	
 	public static boolean arenaHasAllArenasSet(TagArena arena) {
-		ConfigurationSection cSection = ConfigLoader
-				.getFileConfig().getConfigurationSection("Tag.Arenas." + arena.getArena());
+		Set<String> subkeys = ConfigLoader
+				.getFileConfig().getConfigurationSection("Tag.Arena." + arena.getArena() + ".Warps").getKeys(false);
 		
-		return cSection.contains("Arena") && cSection.contains("Rip") && cSection.contains("Lobby");
+		return subkeys.contains("Arena") && subkeys.contains("Rip") && subkeys.contains("Lobby");
 	}
 }
