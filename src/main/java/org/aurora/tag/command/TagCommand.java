@@ -37,6 +37,9 @@ public class TagCommand {
 				sender.sendMessage(ChatColor.GOLD
 						+ ConfigLoader.getDefault("Tag.Strings.WrongServer"));
 		} else {
+			for(int i = 0; i < args.length; i++) {
+				args[i] = args[i].toLowerCase();
+			}
 				switch (args[0].toLowerCase()) {
 				// /tag join & /tag join confirm
 				case "join":
@@ -136,7 +139,7 @@ public class TagCommand {
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerNotInGame"));
 							else {
-								MethodBypass.legalWarp("back", (Player) sender,
+								MethodBypass.legalWarp("spawn", (Player) sender,
 										GameCenter.getArena((Player) sender).getArena());
 								InventoryManager.restoreInv(
 										(Player) sender, GameCenter.getArena((Player) sender));
@@ -159,7 +162,7 @@ public class TagCommand {
 									sender.sendMessage(ChatColor.GOLD
 											+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
 								else
-									GameCenter.stop(arena.getArena());
+									GameCenter.stop(arena.getArena(), false);
 							}
 							
 						} else if(args.length == 1) {
@@ -168,7 +171,7 @@ public class TagCommand {
 										+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
 							else
 								GameCenter.getActiveGames().forEach(arena -> {
-									GameCenter.stop(arena.getArena());
+									GameCenter.stop(arena.getArena(), false);
 								});
 						}
 					} else
@@ -244,6 +247,7 @@ public class TagCommand {
 							sender.sendMessage(ChatColor.GOLD
 									+ String.format(listedArenas, GameCenter.availableArenas()
 											.stream()
+											.map(TagCommand::toProperCase)
 											.collect(Collectors.joining(", "))));
 						}	
 					}
@@ -259,12 +263,22 @@ public class TagCommand {
 										+ String.format(
 										"%s%s%s%s%s%s",
 										"===============================\n",
-										"  Tag-Minigame " + args[1] + ": \n",
+										"  Tag-Minigame " + toProperCase(args[1]) + ": \n",
 										"===============================\n",
 										"  Players joined: " + arena.getJoinedPlayers().size() + "/" + arena.getMaxPlayers() + "\n",
-										"  Status: " + (arena.isActive() ? ChatColor.RED + "ACTIVE" : ChatColor.GREEN + "OPEN"),
-										"===============================\n"
+										"  Status: " + (arena.isActive() ? ChatColor.RED + "ACTIVE\n" : ChatColor.GREEN + "OPEN\n"),
+										ChatColor.AQUA + "===============================\n"
 										));
+							} else {
+								String maxPlayers = ConfigLoader.getDefault("Tag.Arena." + args[1] + ".MaxPlayers");
+								sender.sendMessage(ChatColor.AQUA
+										+ "===============================\n"
+										+ "  Tag-Minigame " + toProperCase(args[1]) + ": \n"
+										+ "===============================\n"
+										+ "  Players joined: 0/" + maxPlayers + "\n"
+										+ "  Status: " + ChatColor.GREEN + "OPEN\n" 
+										+ ChatColor.AQUA + "===============================\n"
+										);
 							}
 							
 						}
@@ -302,7 +316,7 @@ public class TagCommand {
 			}
 			
 			MethodBypass.legalWarp(ConfigLoader.getDefault(
-					"Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Lobby"),
+					"Tag.Arena." + arena.getArena() + ".Warps.Lobby"),
 					player,
 					GameCenter.getArena(player).getArena());
 			player.sendMessage(ChatColor.GOLD + ConfigLoader.getDefault("Tag.Strings.PlayerWarpLobby"));
@@ -398,6 +412,10 @@ public class TagCommand {
 		} catch (NumberFormatException e) {
 			return false;
 		}
+	}
+	
+	public static String toProperCase(String word) {
+		return word.substring(0, 1).toUpperCase() + word.substring(1, word.length());
 	}
 
 }
