@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.util.MethodBypass;
 import org.aurora.tag.util.Timer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -59,7 +60,7 @@ public class TagArena {
 		// Check if all players are in rip
 		// if so, end the game without a winner
 		if(votedPlayers.size() == ripPlayers.size())
-			GameCenter.stop(this.arena);
+			GameCenter.stop(this.arena, true);
 	}
 	
 	public void prohibitWarp() {
@@ -73,7 +74,27 @@ public class TagArena {
 	}
 	
 	public void deactivate() {
+		// warp all player to spawn
+		joinedPlayers.forEach(player -> {
+			MethodBypass.legalWarp("spawn", player, arena);
+		});
+		
 		clearAll();
+		isActive = false;
+	}
+	
+	public void deactivateWithVote() {
+		// warp all player to the lobby
+		joinedPlayers.forEach(player -> {
+			MethodBypass.legalWarp(
+					ConfigLoader.getDefault("Tag.Arena." + arena.toLowerCase() + ".Warps.Lobby"),
+					player, arena);
+		});
+		votedPlayers.clear();
+		ripPlayers.clear();
+
+		// Clear map with player's inventory
+		clearPlayerInv();
 		isActive = false;
 	}
 	
@@ -102,7 +123,7 @@ public class TagArena {
 		
 		// Check if game is active and is last person to leave
 		if(isActive && votedPlayers.isEmpty())
-			GameCenter.stop(this.arena);
+			GameCenter.stop(this.arena, true);
 	}
 	
 	public void migrate() {
