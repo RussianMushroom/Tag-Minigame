@@ -116,6 +116,7 @@ public class TagArena {
 	
 	public void removePlayer(Player player) {
 		joinedPlayers.remove(player);
+		
 		if(votedPlayers.contains(player))
 			votedPlayers.remove(player);
 		if(ripPlayers.contains(player))
