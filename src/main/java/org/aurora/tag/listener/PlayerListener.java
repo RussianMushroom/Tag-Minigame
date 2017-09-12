@@ -6,6 +6,7 @@ import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.game.TagArena;
 import org.aurora.tag.leaderboard.LeaderboardManager;
+import org.aurora.tag.util.GeneralMethods;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
@@ -24,6 +25,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityDamageEvent.DamageCause;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
@@ -85,6 +87,11 @@ public class PlayerListener implements Listener {
 						tagged.sendMessage(ChatColor.GOLD
 								+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTaggedByPlayer"), 
 										tagger.getName()));
+						GeneralMethods.displayMessage(taggerArena, 
+								String.format(
+										ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"),
+										tagged.getName(),
+										tagger.getName()));
 						MethodBypass.legalWarp(ConfigLoader.getDefault(
 								"Tag.Arena." + GameCenter.getArena(tagged).getArena() + ".Warps.Rip"), tagged, taggedArena.getArena());
 						
@@ -97,7 +104,8 @@ public class PlayerListener implements Listener {
 						} else
 							tagger.sendMessage(ChatColor.GOLD
 									+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"), 
-											tagged.getName()));
+											tagged.getName(),
+											tagger.getName()));
 					}
 				}
 			} else {
@@ -117,6 +125,8 @@ public class PlayerListener implements Listener {
 					&& !GameCenter.arenaContainsPlayerAsType("rip", (Player) attacked)) {
 				Player player = (Player) attacked;
 				if(player.getHealth() - event.getDamage() < 1) {
+					// Prevent the player from dying, warp them to rip, heal them and send them a message
+					// finally add them to rip list and tell all players that cause of death.
 					event.setCancelled(true);
 					MethodBypass.legalWarp(ConfigLoader.getDefault(
 							"Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Rip"),
@@ -126,10 +136,45 @@ public class PlayerListener implements Listener {
 							"heal " + player.getName());
 					player.sendMessage(ChatColor.GOLD
 							+ ConfigLoader.getDefault("Tag.Strings.PlayerDiesInArena"));
-
+					displayCause(player, event.getCause());
 					GameCenter.getArena(player).addRip(player);
 				}
 			}
+		}
+	}
+	
+	private static void displayCause(Player player, DamageCause cause) {
+		final TagArena arena = GameCenter.getArena(player);
+		
+		switch(cause.name()) {
+		case "CONTACT":
+			GeneralMethods.displayMessage(arena, 
+					String.format(
+							ConfigLoader.getDefault("Tag.Strings.PlayerDiesByCactus"),
+							player.getName()));
+			break;
+		case "DROWNING":
+			GeneralMethods.displayMessage(arena, 
+					String.format(
+							ConfigLoader.getDefault("Tag.Strings.PlayerDiesByDrowning"),
+							player.getName()));
+			break;
+		case "FALL":
+			GeneralMethods.displayMessage(arena, 
+					String.format(
+							ConfigLoader.getDefault("Tag.Strings.PlayerDiesByFalling"),
+							player.getName()));
+			break;
+		case "FIRE":
+		case "FIRE_TICK":
+		case "HOT_FLOOR":
+		case "LAVA":
+		case "LIGHTNING":
+			GeneralMethods.displayMessage(arena, 
+					String.format(
+							ConfigLoader.getDefault("Tag.Strings.PlayerDiesByBurning"),
+							player.getName()));
+			break;
 		}
 	}
 	
@@ -147,19 +192,17 @@ public class PlayerListener implements Listener {
 			if(clickedBlock.getState() instanceof Sign) {
 				Sign sign = (Sign) clickedBlock.getState();
 				
-				if(sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToJoin"))) {
-					if(!sign.getLine(1).equals("")) {
+				if(signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToJoin"), sign))
+					if(!sign.getLine(1).equals(""))
 						event.getPlayer().performCommand("tag join " + sign.getLine(1).toLowerCase());
-					}
-				} else if(sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToLeave"))) {
+				else if(signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToLeave"), sign))
 					event.getPlayer().performCommand("tag leave");
-				}
 				
 				if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
 					arena = GameCenter.getArena(event.getPlayer());
 					
 						// Player clicked sign to vote
-						if(sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToVote")) 
+						if(signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToVote"), sign)
 								&& !arena.isActive()) {
 							if(arena.vote(player)) {
 								player.sendMessage(ChatColor.GOLD
@@ -170,7 +213,7 @@ public class PlayerListener implements Listener {
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerAlreadyVote"));
 						}
 						// Player clicked sign to get an upgrade
-						else if (sign.getLine(0).contains(ConfigLoader.getDefault("Tag.Sign.SignToUpgrade"))
+						else if (signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToUpgrade"), sign)
 								&& arena.isActive()
 								&& arena.getVotedPlayers().contains(player)
 								&& !arena.isGrace()) {
@@ -185,7 +228,15 @@ public class PlayerListener implements Listener {
 						}
 					}
 				}
+			}
 		}
+	
+	private static boolean signContainsString(String string, Sign sign) {
+		for(String line : sign.getLines()) {
+			if(line.contains(string))
+				return true;
+		}
+		return false;
 	}
 	
 	// Disable teleporting for players in the event
@@ -246,8 +297,13 @@ public class PlayerListener implements Listener {
 	// Kick
 	@EventHandler
 	public void onPlayerKickEvent(PlayerKickEvent event) {
-		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer()))
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
+			GeneralMethods.displayMessage(GameCenter.getArena(event.getPlayer()), 
+					String.format(
+							ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"),
+							event.getPlayer().getName()));
 			GameCenter.getArena(event.getPlayer()).removePlayer(event.getPlayer());
+		}
 	}
 	
 	// Die
@@ -256,8 +312,13 @@ public class PlayerListener implements Listener {
 	// Leave
 	@EventHandler 
 	public void onPlayerQuitEvent(PlayerQuitEvent event) {
-		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer()))
+		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
+			GeneralMethods.displayMessage(GameCenter.getArena(event.getPlayer()), 
+					String.format(
+							ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"),
+							event.getPlayer().getName()));
 			GameCenter.getArena(event.getPlayer()).removePlayer(event.getPlayer());
+		}
 	}
 	
 	// Disable flight
