@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.aurora.tag.command.TagCommand;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.leaderboard.LeaderboardManager;
+import org.aurora.tag.util.GeneralMethods;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
@@ -29,7 +30,7 @@ public class GameCenter {
 		Bukkit.broadcastMessage(ChatColor.GOLD
 				+ String.format(
 						ConfigLoader.getDefault("Tag.Strings.GameStart"),
-						TagCommand.toProperCase(arena)));
+						GeneralMethods.toProperCase(arena)));
 		
 		// Warp everyone to the arena
 		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
@@ -54,7 +55,7 @@ public class GameCenter {
 			Bukkit.broadcastMessage(ChatColor.GOLD
 					+ String.format(
 							ConfigLoader.getDefault("Tag.Strings.GameStop"),
-							TagCommand.toProperCase(arena)));
+							GeneralMethods.toProperCase(arena)));
 			
 			forceStop(arena, allowRejoinBySign);
 		}
