@@ -94,8 +94,9 @@ public class InventoryManager {
 		
 		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
 			Random rand = new Random();
-			if(rand.nextDouble() < Double.parseDouble(
-							ConfigLoader.getDefault("Tag.Tools.ChanceToGetPumpkin")))
+			double chance = Double.parseDouble(
+					ConfigLoader.getDefault("Tag.Tools.ChanceToGetPumpkin"));
+			if(chance != 0d && rand.nextDouble() < chance)
 				player.getInventory().setArmorContents(customItemStack);
 			else
 				player.getInventory().setArmorContents(iStack);
@@ -158,13 +159,15 @@ public class InventoryManager {
 		ItemStack[] items = new ItemStack[] {bow, arrow, blindPotion, swiftPotion, jumpPotion /*, blindPotion*/};
 		ItemStack upgrade = items[randomIndexGenerator(items.length)];
 		
-		if(upgrade.getType() == Material.BOW)
-			player.getInventory().addItem(arrow);
-		else if(upgrade.getType() == Material.ARROW && !player.getInventory().contains(Material.BOW))
+		if(upgrade.getType() == Material.BOW) {
+			if(player.getInventory().contains(Material.BOW)) {
+				while(upgrade.getType() == Material.BOW) {
+					upgrade = items[randomIndexGenerator(items.length)];
+				}
+			} else	
+				player.getInventory().addItem(arrow);
+		} else if(upgrade.getType() == Material.ARROW && !player.getInventory().contains(Material.BOW))
 			player.getInventory().addItem(bow);
-			
-		if(player.getInventory().contains(Material.BOW)) 
-			upgrade = arrow;
 		
 		player.getInventory().addItem(upgrade);
 	}
