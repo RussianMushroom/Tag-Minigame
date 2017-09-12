@@ -7,6 +7,7 @@ import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.game.TagArena;
 import org.aurora.tag.leaderboard.LeaderboardManager;
+import org.aurora.tag.util.GeneralMethods;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
@@ -31,11 +32,6 @@ public class TagCommand {
 		// Check if the user has the necessary permissions
 		if(args.length == 0 || args.length > 3) {
 			displayMenu(sender);
-		} else if(!ConfigLoader.getDefault("Tag.Minigame.WorldName").equals("") && 
-			!((Player) sender).getWorld().getName().equalsIgnoreCase(
-					ConfigLoader.getDefault("Tag.Minigame.WorldName"))) {
-				sender.sendMessage(ChatColor.GOLD
-						+ ConfigLoader.getDefault("Tag.Strings.WrongServer"));
 		} else {
 			for(int i = 0; i < args.length; i++) {
 				args[i] = args[i].toLowerCase();
@@ -123,7 +119,7 @@ public class TagCommand {
 					break;
 					// /tag help
 				case "help":
-					if(sender.hasPermission("tag.help"))
+					if(sender.hasPermission("tag.help") || sender instanceof ConsoleCommandSender)
 						displayHelpMenu(sender);
 					else
 						notEnoughPermission(sender);
@@ -145,7 +141,11 @@ public class TagCommand {
 										(Player) sender, GameCenter.getArena((Player) sender));
 								GameCenter.getArena((Player) sender).removePlayer((Player) sender);
 								sender.sendMessage(ChatColor.GOLD
-										+ ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"));
+										+ ConfigLoader.getDefault("Tag.Strings.PlayerHasLeft"));
+								GeneralMethods.displayMessage(GameCenter.getArena(((Player)sender).getName()), 
+										String.format(
+												ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"),
+												((Player)sender).getName()));
 							}
 						} else
 							notEnoughPermission(sender);
@@ -207,20 +207,19 @@ public class TagCommand {
 				// /tag leaderboard
 				case "leaderboard":
 				case "lb":
-					if(!sender.hasPermission("tag.leaderboard"))
+					if(!sender.hasPermission("tag.leaderboard") && !(sender instanceof ConsoleCommandSender)) 
 						notEnoughPermission(sender);
 					else {
 						displayLeaderboard(sender, (args.length == 2) ? args[1] : DEFAULT_TOP + "");
-							
 					}
 					break;
 				case "createarena":
 				case "ca":
-					if(!sender.hasPermission("tag.createarena"))
+					if(!sender.hasPermission("tag.createarena") && !(sender instanceof ConsoleCommandSender))
 						notEnoughPermission(sender);
 					else if(args.length != 2)
 						sender.sendMessage(ChatColor.GOLD
-								+ ConfigLoader.getDefault("Tag.Strings.ArenaDoesNotExist"));
+								+ ConfigLoader.getDefault("Tag.Strings.CreateSyntax"));
 					else {
 						if(!GameCenter.availableArenas().contains(args[1])) {
 							ConfigLoader.set("Tag.Arena." + args[1], "");
@@ -235,7 +234,7 @@ public class TagCommand {
 					break;
 				case "listarena":
 				case "la":
-					if(!sender.hasPermission("tag.createarena"))
+					if(!sender.hasPermission("tag.createarena") && !(sender instanceof ConsoleCommandSender))
 						notEnoughPermission(sender);
 					else {
 						if(GameCenter.availableArenas().isEmpty()) {
@@ -247,13 +246,13 @@ public class TagCommand {
 							sender.sendMessage(ChatColor.GOLD
 									+ String.format(listedArenas, GameCenter.availableArenas()
 											.stream()
-											.map(TagCommand::toProperCase)
+											.map(GeneralMethods::toProperCase)
 											.collect(Collectors.joining(", "))));
 						}	
 					}
 					break;
 				case "status":
-					if(!sender.hasPermission("tag.status"))
+					if(!sender.hasPermission("tag.status") && !(sender instanceof ConsoleCommandSender))
 						notEnoughPermission(sender);
 					else {
 						if(args.length == 2) {
@@ -263,7 +262,7 @@ public class TagCommand {
 										+ String.format(
 										"%s%s%s%s%s%s",
 										"===============================\n",
-										"  Tag-Minigame " + toProperCase(args[1]) + ": \n",
+										"  Tag-Minigame " + GeneralMethods.toProperCase(args[1]) + ": \n",
 										"===============================\n",
 										"  Players joined: " + arena.getJoinedPlayers().size() + "/" + arena.getMaxPlayers() + "\n",
 										"  Status: " + (arena.isActive() ? ChatColor.RED + "ACTIVE\n" : ChatColor.GREEN + "OPEN\n"),
@@ -273,7 +272,7 @@ public class TagCommand {
 								String maxPlayers = ConfigLoader.getDefault("Tag.Arena." + args[1] + ".MaxPlayers");
 								sender.sendMessage(ChatColor.AQUA
 										+ "===============================\n"
-										+ "  Tag-Minigame " + toProperCase(args[1]) + ": \n"
+										+ "  Tag-Minigame " + GeneralMethods.toProperCase(args[1]) + ": \n"
 										+ "===============================\n"
 										+ "  Players joined: 0/" + maxPlayers + "\n"
 										+ "  Status: " + ChatColor.GREEN + "OPEN\n" 
@@ -365,7 +364,7 @@ public class TagCommand {
 	private static void displayLeaderboard(CommandSender sender, String top) {
 		int defaultSize = DEFAULT_TOP;
 		
-		if(!isInteger(top))
+		if(!GeneralMethods.isInteger(top))
 			sender.sendMessage(ChatColor.GOLD
 					+ "Invalid number! Using default: " + DEFAULT_TOP);
 		else 
@@ -403,19 +402,4 @@ public class TagCommand {
 		
 		sender.sendMessage(sBuilder.toString());
 	}
-	
-	
-	private static boolean isInteger(String string) {
-		try {
-			Integer.parseInt(string);
-			return true;
-		} catch (NumberFormatException e) {
-			return false;
-		}
-	}
-	
-	public static String toProperCase(String word) {
-		return word.substring(0, 1).toUpperCase() + word.substring(1, word.length());
-	}
-
 }
