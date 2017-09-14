@@ -41,8 +41,11 @@ In order to make sure that this plugin runs smoothly on the server, make sure th
   
 ## Upcoming Features
 
-- ~~MySQL support to save players' wins as credits that can be redeemed for item prizes.~~ This is now to be supported by a new plugin called RewardLib (Adds global support for reward systems).
-- ~~Support for multiple arenas. Create an arena using `/tag createarena [arena name]`.~~ Supported since 1.5.5.
+- ~~MySQL support to save players' wins as credits that can be redeemed for item prizes.~~ 
+  - This is now to be supported by a new plugin called RewardLib (Adds global support for reward systems).
+- ~~Support for multiple arenas. Create an arena using `/tag createarena [arena name]`.~~ 
+  - Supported since 1.5.5.
+- Support for holographic displays.
   
 ## Credits
 
