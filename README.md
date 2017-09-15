@@ -1,4 +1,4 @@
-# Tag-Minigame
+# TagMinigame
 Adds a game of Tag to your server.
 As of `1.5.5` one can now create muliple instances of a Tag game which allows for the creation of different arenas.
 
