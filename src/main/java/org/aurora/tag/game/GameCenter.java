@@ -7,7 +7,6 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.aurora.tag.command.TagCommand;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.GeneralMethods;
