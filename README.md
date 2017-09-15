@@ -25,6 +25,7 @@ The last player standing will receive a cash reward if the server has the plugin
 - ~~All players' inventories are saved before they are cleared and loaded once the game is over.~~ This was removed due to severe bugs.
 - The config file contains externalised text so as to make the game customisable for the server.
 - `/tag leaderboard` keeps track of all the players' wins and losses.
+- Holographic countdown, requires **ProtocolLib!**
 
 ## Setting Up
 
@@ -45,7 +46,6 @@ In order to make sure that this plugin runs smoothly on the server, make sure th
   - This is now to be supported by a new plugin called RewardLib (Adds global support for reward systems).
 - ~~Support for multiple arenas. Create an arena using `/tag createarena [arena name]`.~~ 
   - Supported since 1.5.5.
-- Support for holographic displays.
   
 ## Credits
 
