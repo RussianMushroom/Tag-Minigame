@@ -18,6 +18,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
+import mkremins.fanciful.FancyMessage;
+
 /**
  * Deals with the use of the tag command.
  * @author RussianMushroom
@@ -36,6 +38,8 @@ public class TagCommand {
 			for(int i = 0; i < args.length; i++) {
 				args[i] = args[i].toLowerCase();
 			}
+			
+			Player player = (Player) sender;
 				switch (args[0].toLowerCase()) {
 				// /tag join & /tag join confirm
 				case "join":
@@ -58,19 +62,19 @@ public class TagCommand {
 									} else 
 										arena = GameCenter.getArena(args[1]);
 									
-									if(GameCenter.arenaContainsPlayerAsType("joined", (Player) sender))
+									if(GameCenter.arenaContainsPlayerAsType("joined", player))
 											sender.sendMessage(ChatColor.GOLD
 													+ ConfigLoader.getDefault("Tag.Strings.AlreadyInActiveGame"));
-									else if(arena.getJoinedPlayers().contains((Player) sender)
-											&& !arena.getVotedPlayers().contains((Player) sender)
+									else if(arena.getJoinedPlayers().contains(player)
+											&& !arena.getVotedPlayers().contains(player)
 											&& !arena.isActive())
 										sender.sendMessage(ChatColor.GOLD
 												+ ConfigLoader.getDefault("Tag.Strings.AlreadyInLobby"));
-									else if(arena.getVotedPlayers().contains((Player) sender)
+									else if(arena.getVotedPlayers().contains(player)
 											&& !arena.isActive())
 										sender.sendMessage(ChatColor.GOLD
 												+ ConfigLoader.getDefault("Tag.Strings.PlayerAlreadyVote"));
-									else if((arena.getVotedPlayers().contains((Player) sender) && arena.isActive()))
+									else if((arena.getVotedPlayers().contains(player) && arena.isActive()))
 										sender.sendMessage(ChatColor.GOLD
 												+ ConfigLoader.getDefault("Tag.Strings.AlreadyInActiveGame"));
 									else if(arena.isActive())
@@ -78,7 +82,7 @@ public class TagCommand {
 												+ ConfigLoader.getDefault("Tag.Strings.AlreadyActiveGameWait"));
 									else {  
 										if(GameCenter.arenaHasAllArenasSet(arena)) {
-											handleJoin((Player) sender, arena);
+											handleJoin(player, arena);
 											sender.sendMessage(ChatColor.GOLD
 													+ ConfigLoader.getDefault("Tag.Strings.InventorySaved"));
 										} 
@@ -131,21 +135,19 @@ public class TagCommand {
 								+ ConfigLoader.getDefault("Tag.Strings.ConsoleUser"));
 					else {
 						if(sender.hasPermission("tag.leave")) {
-							if(!GameCenter.arenaContainsPlayerAsType("joined", (Player) sender))
+							if(!GameCenter.arenaContainsPlayerAsType("joined", player))
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerNotInGame"));
 							else {
-								MethodBypass.legalWarp("spawn", (Player) sender,
-										GameCenter.getArena((Player) sender).getArena());
-								InventoryManager.restoreInv(
-										(Player) sender, GameCenter.getArena((Player) sender));
-								GameCenter.getArena((Player) sender).removePlayer((Player) sender);
+								MethodBypass.legalWarp("spawn", player,
+										GameCenter.getArena(player).getArena());
+								InventoryManager.restoreInv(player, GameCenter.getArena(player));
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerHasLeft"));
-								GeneralMethods.displayMessage(GameCenter.getArena(((Player)sender).getName()), 
-										String.format(
-												ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"),
-												((Player)sender).getName()));
+								GeneralMethods.displayMessage(GameCenter.getArena(player), 
+										String.format(ConfigLoader.getDefault("Tag.Strings.PlayerLeaves"),
+												player.getName()));
+								GameCenter.getArena(player).removePlayer(player);
 							}
 						} else
 							notEnoughPermission(sender);
@@ -258,6 +260,22 @@ public class TagCommand {
 						if(args.length == 2) {
 							if(GameCenter.getArena(args[1]) != null) {
 								TagArena arena = GameCenter.getArena(args[1]);
+								
+								// import FancifulText and use the methods to display a json popup of the joined players.
+								new FancyMessage(String.format(
+										"%s%s%s%s%s%s",
+										"===============================\n",
+										"  Tag-Minigame " + GeneralMethods.toProperCase(args[1]) + ": \n",
+										"===============================\n",
+										"  Players joined: " + arena.getJoinedPlayers().size() + "/" + arena.getMaxPlayers() + "\n",
+										"  Status: " + (arena.isActive() ? ChatColor.RED + "ACTIVE\n" : ChatColor.GREEN + "OPEN\n"),
+										"===============================\n"
+										))
+									.color(ChatColor.AQUA)
+									.tooltip(getJoinedPlayers(arena))
+									.send(sender);
+								
+								/*
 								sender.sendMessage(ChatColor.AQUA 
 										+ String.format(
 										"%s%s%s%s%s%s",
@@ -268,8 +286,10 @@ public class TagCommand {
 										"  Status: " + (arena.isActive() ? ChatColor.RED + "ACTIVE\n" : ChatColor.GREEN + "OPEN\n"),
 										ChatColor.AQUA + "===============================\n"
 										));
+								*/
 							} else {
 								String maxPlayers = ConfigLoader.getDefault("Tag.Arena." + args[1] + ".MaxPlayers");
+								
 								sender.sendMessage(ChatColor.AQUA
 										+ "===============================\n"
 										+ "  Tag-Minigame " + GeneralMethods.toProperCase(args[1]) + ": \n"
@@ -278,6 +298,7 @@ public class TagCommand {
 										+ "  Status: " + ChatColor.GREEN + "OPEN\n" 
 										+ ChatColor.AQUA + "===============================\n"
 										);
+								
 							}
 							
 						}
@@ -290,14 +311,30 @@ public class TagCommand {
 		}	
 	}
 	
+	private static String getJoinedPlayers(TagArena arena) {
+		StringBuilder sBuilder = new StringBuilder();
+		sBuilder.append("Joined players: \n");
+		
+		arena.getJoinedPlayers()
+			.stream()
+			.map(player -> player.getName())
+			.sorted()
+			.forEach(player -> {
+				sBuilder.append("- " + player + "\n");
+			});
+		
+		return sBuilder.toString();
+	}
+	
 	
 	private static void setArena(String path, CommandSender sender) {
-		Location location = ((Player) sender).getLocation();
+		Player player = (Player) sender;
+		Location location = (player).getLocation();
 		
 		ConfigLoader.set(
 				path,
 				String.format("%s_%s,%s,%s",
-						((Player) sender).getWorld().getName(),
+						(player).getWorld().getName(),
 						location.getBlockX(),
 						location.getBlockY(),
 						location.getBlockZ())
