@@ -55,7 +55,7 @@ public class ConfigLoader {
     fConfig.set("Tag.Arena", "");
     
     // Misc
-    fConfig.set("Tag.Options.AllowHolographicCountdown", Boolean.valueOf(true));
+    fConfig.set("Tag.Options.AllowHolographicCountdown", Boolean.valueOf(false));
     
     // Externalise strings
     fConfig.set("Tag.Strings.NotifyPlayersGameStart", "This game of Tag is starting in %d seconds!");
@@ -90,7 +90,9 @@ public class ConfigLoader {
     fConfig.set("Tag.Strings.PlayerLeaves", "You have left the Tag game. You will be warped back to your last known location.");
     fConfig.set("Tag.Strings.MinPlayers", "There need to be at least two players to start a game of Tag.");
     fConfig.set("Tag.Strings.Grace", "You now have %d seconds to get into position. Good luck!");
+    fConfig.set("Tag.Strings.GracePeriodEndsIn", "The grace period ends in");
     fConfig.set("Tag.Strings.NoGrace", "The grace period is over!");
+    fConfig.set("Tag.Strings.GracePeriodGoodLuck", "Good luck!");
     fConfig.set("Tag.Strings.ArenaAdded", "The warp was successfully added!");
     fConfig.set("Tag.Strings.SetSyntax", "Invalid syntax: /tag set [arena | lobby | rip] [arena name].");
     fConfig.set("Tag.Strings.JoinSyntax", "Invalid syntax: /tag join [arena name].");
