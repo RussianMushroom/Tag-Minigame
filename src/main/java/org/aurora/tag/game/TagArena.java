@@ -7,6 +7,7 @@ import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.aurora.tag.config.ConfigLoader;
+import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
 import org.aurora.tag.util.Timer;
 import org.bukkit.entity.Player;
@@ -60,7 +61,7 @@ public class TagArena {
 		// Check if all players are in rip
 		// if so, end the game without a winner
 		if(votedPlayers.size() == ripPlayers.size())
-			GameCenter.stop(this.arena, true);
+			GameCenter.stop(this, true);
 	}
 	
 	public void prohibitWarp() {
@@ -76,7 +77,7 @@ public class TagArena {
 	public void deactivate() {
 		// warp all player to spawn
 		joinedPlayers.forEach(player -> {
-			MethodBypass.legalWarp("spawn", player, arena);
+			MethodBypass.legalWarp("spawn", player, this);
 		});
 		
 		clearAll();
@@ -88,7 +89,7 @@ public class TagArena {
 		joinedPlayers.forEach(player -> {
 			MethodBypass.legalWarp(
 					ConfigLoader.getDefault("Tag.Arena." + arena.toLowerCase() + ".Warps.Lobby"),
-					player, arena);
+					player, this);
 		});
 		votedPlayers.clear();
 		ripPlayers.clear();
@@ -122,9 +123,14 @@ public class TagArena {
 		if(ripPlayers.contains(player))
 			ripPlayers.remove(player);
 		
+		// reset inventory
+		InventoryManager.restoreInv(player, this);
+		// warp player that left to spawn
+		MethodBypass.legalWarp("spawn", player, this);
+		
 		// Check if game is active and is last person to leave
 		if(isActive && votedPlayers.isEmpty())
-			GameCenter.stop(this.arena, true);
+			GameCenter.stop(this, false);
 	}
 	
 	public void migrate() {
@@ -154,7 +160,7 @@ public class TagArena {
 	
 	public void startGraceTimer() {
 		Timer graceTimer = new Timer();
-		graceTimer.startGraceTimer(graceTask, this.arena);
+		graceTimer.startGraceTimer(graceTask, this);
 	}
 	
 	public void startUpgradeTimer() {
@@ -163,8 +169,9 @@ public class TagArena {
 	}
 	
 	public void delayStart() {
+		activate();
 		Timer delayStartTimer = new Timer();
-		delayStartTimer.delayStart(arena);
+		delayStartTimer.delayStart(this);
 	}
 	
 	// Getters and Setters

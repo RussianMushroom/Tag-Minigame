@@ -34,8 +34,7 @@ public class Timer {
 				 );
 	 }
 	 
-	 public void startGraceTimer(BukkitTask graceTask, String tagArena) {
-		 TagArena arena = GameCenter.getArena(tagArena);
+	 public void startGraceTimer(BukkitTask graceTask, TagArena arena) {
 		 boolean displayHologram = ConfigLoader.getFileConfig().getBoolean("Tag.Options.AllowHolographicCountdown");
 		 
 		 arena.setGrace(true);
@@ -48,7 +47,7 @@ public class Timer {
 			 
 			 Runnable run = () -> {
 				 arena.getVotedPlayers().forEach(player -> {
-					 if(displayHologram && Bukkit.getServer().getPluginManager().isPluginEnabled("ProtocolLib"))
+					 if(displayHologram && Bukkit.getServer().getPluginManager().getPlugin("ProtocolLib").isEnabled())
 						 HologramManager.display(ConfigLoader.getDefault("Tag.Strings.NoGrace"),
 								 ConfigLoader.getDefault("Tag.Strings.GracePeriodGoodLuck"), player);
 					 else
@@ -83,7 +82,7 @@ public class Timer {
 		 
 		 // TODO add check for ProtocolLib
 		 arena.getVotedPlayers().forEach(player -> {
-			 if(displayHologram && Bukkit.getServer().getPluginManager().isPluginEnabled("ProtocolLib"))
+			 if(displayHologram && Bukkit.getServer().getPluginManager().getPlugin("ProtocolLib").isEnabled())
 				 HologramManager.display(ConfigLoader.getDefault("Tag.Strings.GracePeriodEndsIn"),
 						 Integer.toString(count), player);
 			 else
@@ -98,10 +97,8 @@ public class Timer {
 		 Bukkit.getScheduler().cancelTask(taskId);
 	 }
 	 
-	 public void delayStart(String arena) {
-		// Set game to active
-		GameCenter.getArena(arena).activate();
-		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+	 public void delayStart(TagArena arena) {
+		arena.getVotedPlayers().forEach(player -> {
 			 player.sendMessage(ChatColor.GOLD
 					 + String.format(ConfigLoader.getDefault("Tag.Strings.NotifyPlayersGameStart"),
 							 Integer.parseInt(ConfigLoader.getDefault("Tag.Timer.TicksBeforeTagStart")) / 20));

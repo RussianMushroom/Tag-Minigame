@@ -25,14 +25,14 @@ public class GameCenter {
 	
 	private static List<TagArena> activeGames = new ArrayList<>();
 	
-	public static void start(String arena) {
+	public static void start(TagArena arena) {
 		Bukkit.broadcastMessage(ChatColor.GOLD
 				+ String.format(
 						ConfigLoader.getDefault("Tag.Strings.GameStart"),
-						GeneralMethods.toProperCase(arena)));
+						GeneralMethods.toProperCase(arena.getArena())));
 		
 		// Warp everyone to the arena
-		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+		arena.getVotedPlayers().forEach(player -> {
 			MethodBypass.legalWarp(
 					ConfigLoader.getDefault("Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Arena"), 
 					player, 
@@ -46,37 +46,37 @@ public class GameCenter {
 		InventoryManager.setArmour(arena);
 		
 		// Start grace period countdown
-		GameCenter.getArena(arena).startGraceTimer();
+		arena.startGraceTimer();
 	}
 	
-	public static void stop(String arena, boolean allowRejoinBySign) {
-		if(GameCenter.getArena(arena).isActive()) {
+	public static void stop(TagArena arena, boolean allowRejoinBySign) {
+		if(arena.isActive()) {
 			Bukkit.broadcastMessage(ChatColor.GOLD
 					+ String.format(
 							ConfigLoader.getDefault("Tag.Strings.GameStop"),
-							GeneralMethods.toProperCase(arena)));
+							GeneralMethods.toProperCase(arena.getArena())));
 			
 			forceStop(arena, allowRejoinBySign);
 		}
 	}
 	
-	public static void forceStop(String arena, boolean allowRejoinBySign) {
+	public static void forceStop(TagArena arena, boolean allowRejoinBySign) {
 		// Clear inventories and set game to inactive
 		InventoryManager.clearPlayerInventory(true, arena);
 		if(allowRejoinBySign)
-			getArena(arena).deactivateWithVote();
+			arena.deactivateWithVote();
 		else
-			getArena(arena).deactivate();
-		GameCenter.getArena(arena).disableTimers();
+			arena.deactivate();
+		arena.disableTimers();
 	}
 	
 	public static void stopAll() {
 		activeGames.forEach(tagArena -> {
-			forceStop(tagArena.getArena(), false);
+			forceStop(tagArena, false);
 		});
 	}
 	
-	public static void registerWinner(Player player, String arena) {
+	public static void registerWinner(Player player, TagArena arena) {
 		// Update leaderboard
 		LeaderboardManager.add(player, true);
 		giveMoney(player);

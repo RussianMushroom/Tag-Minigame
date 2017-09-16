@@ -38,8 +38,10 @@ public class TagCommand {
 			for(int i = 0; i < args.length; i++) {
 				args[i] = args[i].toLowerCase();
 			}
+			Player player = null;
+			if(!(sender instanceof ConsoleCommandSender))
+				player = (Player) sender;
 			
-			Player player = (Player) sender;
 				switch (args[0].toLowerCase()) {
 				// /tag join & /tag join confirm
 				case "join":
@@ -140,7 +142,7 @@ public class TagCommand {
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerNotInGame"));
 							else {
 								MethodBypass.legalWarp("spawn", player,
-										GameCenter.getArena(player).getArena());
+										GameCenter.getArena(player));
 								InventoryManager.restoreInv(player, GameCenter.getArena(player));
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerHasLeft"));
@@ -164,7 +166,7 @@ public class TagCommand {
 									sender.sendMessage(ChatColor.GOLD
 											+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
 								else
-									GameCenter.stop(arena.getArena(), false);
+									GameCenter.stop(arena, false);
 							}
 							
 						} else if(args.length == 1) {
@@ -173,7 +175,7 @@ public class TagCommand {
 										+ ConfigLoader.getDefault("Tag.Strings.NotActive"));
 							else
 								GameCenter.getActiveGames().forEach(arena -> {
-									GameCenter.stop(arena.getArena(), false);
+									GameCenter.stop(arena, false);
 								});
 						}
 					} else
@@ -257,7 +259,7 @@ public class TagCommand {
 					if(!sender.hasPermission("tag.status") && !(sender instanceof ConsoleCommandSender))
 						notEnoughPermission(sender);
 					else {
-						if(args.length == 2) {
+						if(args.length == 2 && GameCenter.availableArenas().contains(args[1])) {
 							if(GameCenter.getArena(args[1]) != null) {
 								TagArena arena = GameCenter.getArena(args[1]);
 								
@@ -354,7 +356,7 @@ public class TagCommand {
 			MethodBypass.legalWarp(ConfigLoader.getDefault(
 					"Tag.Arena." + arena.getArena() + ".Warps.Lobby"),
 					player,
-					GameCenter.getArena(player).getArena());
+					GameCenter.getArena(player));
 			player.sendMessage(ChatColor.GOLD + ConfigLoader.getDefault("Tag.Strings.PlayerWarpLobby"));
 		} else
 			player.sendMessage(ChatColor.GOLD 

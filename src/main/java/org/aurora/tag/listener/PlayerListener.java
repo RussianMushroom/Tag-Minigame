@@ -93,14 +93,16 @@ public class PlayerListener implements Listener {
 										tagged.getName(),
 										tagger.getName()));
 						MethodBypass.legalWarp(ConfigLoader.getDefault(
-								"Tag.Arena." + GameCenter.getArena(tagged).getArena() + ".Warps.Rip"), tagged, taggedArena.getArena());
+								"Tag.Arena." + GameCenter.getArena(tagged).getArena() + ".Warps.Rip"),
+								tagged,
+								taggedArena);
 						
 						// Add check to see if everyone has been tagged
 						if(taggerArena.isLastPersonStanding(tagger)) {
 							tagger.sendMessage(ChatColor.GOLD
 									+ String.format(ConfigLoader.getDefault("Tag.Strings.LastPersonStanding"), 
 											tagged.getName()));
-							GameCenter.registerWinner(tagger, taggerArena.getArena());
+							GameCenter.registerWinner(tagger, taggerArena);
 						} else
 							tagger.sendMessage(ChatColor.GOLD
 									+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"), 
@@ -131,7 +133,7 @@ public class PlayerListener implements Listener {
 					MethodBypass.legalWarp(ConfigLoader.getDefault(
 							"Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Rip"),
 							player,
-							GameCenter.getArena(player).getArena());
+							GameCenter.getArena(player));
 					Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),
 							"heal " + player.getName());
 					player.sendMessage(ChatColor.GOLD

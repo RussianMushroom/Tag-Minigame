@@ -4,7 +4,6 @@ import java.util.Arrays;
 import java.util.Random;
 
 import org.aurora.tag.config.ConfigLoader;
-import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.game.TagArena;
 import org.bukkit.Color;
 import org.bukkit.Material;
@@ -28,9 +27,9 @@ import io.netty.util.internal.ThreadLocalRandom;
  */
 public class InventoryManager {
 	
-	public static void clearPlayerInventory(boolean stopping, String arena) {
+	public static void clearPlayerInventory(boolean stopping, TagArena arena) {
 		
-		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+		arena.getVotedPlayers().forEach(player -> {
 			player.getInventory().clear();
 		});
 			/*
@@ -60,7 +59,7 @@ public class InventoryManager {
 				*/
 	}
 	
-	public static void setTagBaton(String arena) {
+	public static void setTagBaton(TagArena arena) {
 		Material baton = Material.valueOf(ConfigLoader.getDefault("Tag.Tools.Baton"));
 		ItemStack iStack = new ItemStack(baton);
 		ItemMeta iMeta = iStack.getItemMeta();
@@ -68,12 +67,12 @@ public class InventoryManager {
 		iMeta.setDisplayName(ConfigLoader.getDefault("Tag.Tools.BatonName"));
 		iStack.setItemMeta(iMeta);
 		
-		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+		arena.getVotedPlayers().forEach(player -> {
 			player.getInventory().addItem(iStack);
 		});
 	}
 	
-	public static void setArmour(String arena) {
+	public static void setArmour(TagArena arena) {
 		Color armourColour = Color.BLUE;
 		Color customArmourColour = Color.ORANGE;
 		ItemStack[] iStack = new ItemStack[] {
@@ -92,7 +91,7 @@ public class InventoryManager {
 		};
 		setItemMeta(customItemStack, customArmourColour);
 		
-		GameCenter.getArena(arena).getVotedPlayers().forEach(player -> {
+		arena.getVotedPlayers().forEach(player -> {
 			Random rand = new Random();
 			double chance = Double.parseDouble(
 					ConfigLoader.getDefault("Tag.Tools.ChanceToGetPumpkin"));
