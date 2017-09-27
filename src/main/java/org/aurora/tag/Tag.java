@@ -1,6 +1,11 @@
 package org.aurora.tag;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.aurora.tag.command.TagCommand;
+import org.aurora.tag.command.TagTabCompletion;
+import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.listener.CommandListener;
@@ -18,16 +23,19 @@ public class Tag extends JavaPlugin {
 	public void onEnable() {
 		// Create config file
 		ConfigLoader.load(this);
+		ArenaConfig.load();
 		getServer().getPluginManager().registerEvents(new PlayerListener(), this);
 		getServer().getPluginManager().registerEvents(new CommandListener(), this);
 
 		super.onEnable();
 	}
 	
+	
+	
 	@Override
 	public void onDisable() {
-		GameCenter.stopAll();
 		super.onDisable();
+		GameCenter.stopAll();
 	}
 
 	@Override
@@ -36,6 +44,14 @@ public class Tag extends JavaPlugin {
 			TagCommand.handle(sender, args, this);
 		
 		return super.onCommand(sender, command, label, args);
+	}
+	
+	@Override
+	public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
+		if(command.getName().equalsIgnoreCase("tag"))
+			return TagTabCompletion.complete(sender, args);
+		else
+			return new ArrayList<>();
 	}
 
 	
