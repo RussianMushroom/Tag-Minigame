@@ -3,12 +3,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.aurora.tag.Tag;
+import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.game.TagArena;
 import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.GeneralMethods;
-import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -33,7 +33,10 @@ public class TagCommand {
 		
 		// Check if the user has the necessary permissions
 		if(args.length == 0 || args.length > 3) {
-			displayMenu(sender);
+			if(sender.hasPermission("tag.help.advanced"))
+				displayMenu(sender, true);
+			else
+				displayMenu(sender, false);
 		} else {
 			for(int i = 0; i < args.length; i++) {
 				args[i] = args[i].toLowerCase();
@@ -126,7 +129,7 @@ public class TagCommand {
 					// /tag help
 				case "help":
 					if(sender.hasPermission("tag.help") || sender instanceof ConsoleCommandSender)
-						displayHelpMenu(sender);
+							displayHelpMenu(sender);
 					else
 						notEnoughPermission(sender);
 					break;	
@@ -141,9 +144,6 @@ public class TagCommand {
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerNotInGame"));
 							else {
-								MethodBypass.legalWarp("spawn", player,
-										GameCenter.getArena(player));
-								InventoryManager.restoreInv(player, GameCenter.getArena(player));
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.PlayerHasLeft"));
 								GeneralMethods.displayMessage(GameCenter.getArena(player), 
@@ -194,16 +194,16 @@ public class TagCommand {
 							sender.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.SetSyntax"));
 						} else {
-							if(!ConfigLoader.getFileConfig().contains("Tag.Arena." + args[2]))
+							if(!ArenaConfig.getYamlConfig().contains("Arena." + args[2]))
 								sender.sendMessage(ChatColor.GOLD
 										+ ConfigLoader.getDefault("Tag.Strings.ArenaDoesNotExist"));
 							else {
 								if (args[1].equalsIgnoreCase("arena")) 
-									setArena("Tag.Arena." + args[2] + ".Warps.Arena", sender);					
+									setArena("Arena." + args[2] + ".Warps.Arena", sender);					
 								else if(args[1].equalsIgnoreCase("lobby")) 
-									setArena("Tag.Arena." + args[2] + ".Warps.Lobby", sender);
+									setArena("Arena." + args[2] + ".Warps.Lobby", sender);
 								else if(args[1].equalsIgnoreCase("rip")) 
-									setArena("Tag.Arena." + args[2] + ".Warps.Rip", sender);
+									setArena("Arena." + args[2] + ".Warps.Rip", sender);
 							}
 						}
 					}
@@ -226,8 +226,8 @@ public class TagCommand {
 								+ ConfigLoader.getDefault("Tag.Strings.CreateSyntax"));
 					else {
 						if(!GameCenter.availableArenas().contains(args[1])) {
-							ConfigLoader.set("Tag.Arena." + args[1], "");
-							ConfigLoader.set("Tag.Arena." + args[1] + ".MaxPlayers", "10");
+							ArenaConfig.set("Arena." + args[1], "");
+							ArenaConfig.set("Arena." + args[1] + ".MaxPlayers", "10");
 							sender.sendMessage(ChatColor.GOLD
 									+ ConfigLoader.getDefault("Tag.Strings.ArenaCreated"));
 						} else {
@@ -250,7 +250,7 @@ public class TagCommand {
 							sender.sendMessage(ChatColor.GOLD
 									+ String.format(listedArenas, GameCenter.availableArenas()
 											.stream()
-											.map(GeneralMethods::toProperCase)
+											.map(arena -> ChatColor.YELLOW + GeneralMethods.toProperCase(arena))
 											.collect(Collectors.joining(", "))));
 						}	
 					}
@@ -290,7 +290,7 @@ public class TagCommand {
 										));
 								*/
 							} else {
-								String maxPlayers = ConfigLoader.getDefault("Tag.Arena." + args[1] + ".MaxPlayers");
+								String maxPlayers = ArenaConfig.getDefault("Arena." + args[1] + ".MaxPlayers");
 								
 								sender.sendMessage(ChatColor.AQUA
 										+ "===============================\n"
@@ -333,7 +333,7 @@ public class TagCommand {
 		Player player = (Player) sender;
 		Location location = (player).getLocation();
 		
-		ConfigLoader.set(
+		ArenaConfig.set(
 				path,
 				String.format("%s_%s,%s,%s",
 						(player).getWorld().getName(),
@@ -353,8 +353,8 @@ public class TagCommand {
 				player.setGameMode(GameMode.SURVIVAL);
 			}
 			
-			MethodBypass.legalWarp(ConfigLoader.getDefault(
-					"Tag.Arena." + arena.getArena() + ".Warps.Lobby"),
+			MethodBypass.legalWarp(ArenaConfig.getDefault(
+					"Arena." + arena.getArena() + ".Warps.Lobby"),
 					player,
 					GameCenter.getArena(player));
 			player.sendMessage(ChatColor.GOLD + ConfigLoader.getDefault("Tag.Strings.PlayerWarpLobby"));
@@ -368,34 +368,61 @@ public class TagCommand {
 				+ ConfigLoader.getDefault("Tag.Strings.NoPerm"));
 	} 
 	
-	private static void displayMenu(CommandSender sender) {
-		if(Bukkit.getServer().getPluginManager().isPluginEnabled("ProtocolLib")) {
-			// Add implementation of TextComponent
-		}
+	private static void displayMenu(CommandSender sender, boolean specialPerms) {
+		ChatColor aqua = ChatColor.AQUA;
+		ChatColor dAqua = ChatColor.DARK_AQUA;
+		ChatColor red = ChatColor.RED;
+		ChatColor dRed = ChatColor.DARK_RED;
 		
-		sender.sendMessage(ChatColor.AQUA 
-				+ String.format(
-				"%s%s%s%s%s%s%s%s",
+		String baseMenu = String.format(ChatColor.AQUA + 
+				"%s%s%s%s%s%s%s%s%s%s%s%s%s",
 				"===============================\n",
 				"  Tag-Minigame Menu: \n",
 				"===============================\n",
-				"  /tag join [arena name]\n Join the tag lobby.\n",
-				"  /tag start [arena name]\n Force start the tag minigame.\n",
-				"  /tag leave  Exit from a running game of tag.\n",
-				"  /tag help  Learn how to play the game.\n",
-				"===============================\n"
-				));
+				aqua + " - /tag join [arena name]\n",
+				dAqua + "  > Join the Tag lobby.\n",
+				aqua + " - /tag leave\n",
+				dAqua + "  > Leave a running game of Tag.\n",
+				aqua + " - /tag help\n",
+				dAqua + "  > Tutorial on how to play Tag.\n",
+				aqua + " - /tag status [arena name]\n",
+				dAqua + "  > Display the status of the specified Tag arena.\n",
+				aqua + " - /tag leaderboard [amount]\n",
+				dAqua + "  > Display a leaderboard showing everyone's wins and losses.\n");
+
+		if(specialPerms) {
+			sender.sendMessage(baseMenu
+					+ String.format("%s%s%s%s%s%s%s%s%s%s",
+							red + "\n \n  Advanced Commands: \n",
+							red + " - /tag start [arena name]\n",
+							dRed + "  > Force starts a game of Tag in the specified arena.\n",
+							red + " - /tag stop [arena name]\n",
+							dRed + "  > Force stops a game of Tag in the specified arena.\n"
+									+ "    If no arena is specified, all games are stopped.\n",
+							red + " - /tag createarena [arena name]\n",
+							dRed + "  > Creates a Tag arena with the specified name.\n",
+							red + " - /tag set [arena | rip | lobby] [arena name]\n",
+							dRed + "  > Set the necessary spawn points for each arena. \n"
+									+ "    These are needed for an arena to be usable! \n",
+							aqua + "===============================\n"
+									));
+		} else 
+			sender.sendMessage(baseMenu
+					+ aqua + "===============================\n");
+		
 	}
 	
 	private static void displayHelpMenu(CommandSender sender) {
 		sender.sendMessage(ChatColor.AQUA 
 				+ String.format(
-				"%s%s%s%s%s%s",
+				"%s%s%s%s%s%s%s%s",
 				"===============================\n",
 				"  Tag-Minigame Help: \n",
 				"===============================\n",
-				"  Play Tag with others on the server.\n",
-				"  Tag them and be the last player standing to receive a reward.\n",
+				"  Tag is a combination of Hide-and-Seek as well as Tag.\n",
+				"  In this game you are teleported to an arena along with other players in which you \n",
+				"  have to try not to get tagged by others while trying to hit others with your stick.\n",
+				"  The last player standing wins the game of Tag and receives currency.\n",
 				"===============================\n"
 				));
 	}
