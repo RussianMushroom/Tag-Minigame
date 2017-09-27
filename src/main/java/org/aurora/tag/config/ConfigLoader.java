@@ -50,9 +50,8 @@ public class ConfigLoader {
     
     // Economy
     fConfig.set("Tag.Rewards.Money", Integer.valueOf(10));
-    
-    // Arenas
-    fConfig.set("Tag.Arena", "");
+    fConfig.set("Tag.Rewards.AllowRewardsRelativeToPlayerAmount", Boolean.valueOf(false));
+    fConfig.set("Tag.Rewards.AmountOfCreditsPerGame", 1);
     
     // Misc
     fConfig.set("Tag.Options.AllowHolographicCountdown", Boolean.valueOf(false));
@@ -83,7 +82,7 @@ public class ConfigLoader {
     fConfig.set("Tag.Strings.NotActive", "There is no game of Tag running.");
     fConfig.set("Tag.Strings.PlayerChangeGameMode", "Changing your game mode to survival.");
     fConfig.set("Tag.Strings.PlayerWarpLobby", "You have been warped to the Lobby.");
-    fConfig.set("Tag.Strings.GameIsFull", "This current game of Tag is already full. Please wait until it ends before rejoining.");
+    fConfig.set("Tag.Strings.GameIsFull", "This t game of Tag is already full. Please wait until it ends before rejoining.");
     fConfig.set("Tag.Strings.NoPerm", "You do not have the proper permissions to execute this command!");
     fConfig.set("Tag.Strings.PlayerNotInGame", "You are not in a Tag game.");
     fConfig.set("Tag.Strings.GetUpgrade", "Upgrades are now active!");
@@ -103,6 +102,7 @@ public class ConfigLoader {
     fConfig.set("Tag.Strings.PlayerNoScore", "%s has not played a game of Tag before!");
     fConfig.set("Tag.Strings.IllegalCommandUsed", "You are not allowed to use this command while in a game of Tag!");
     fConfig.set("Tag.Strings.WrongServer", "The Tag-Minigame Arena is not on this server!");
+    fConfig.set("Tag.Strings.NotifyAmountToWin", "In this game there is %d currency up for grabs!");
     fConfig.set("Tag.Strings.PlayerReceiveMoney", "You have been awarded %s currency points for winning! Don't spend it all in one place!");
     fConfig.set("Tag.Strings.ArenaDoesNotExist", "This arena does not exist, please use /tag createarena [arena name] to create one!");
     fConfig.set("Tag.Strings.ArenaCreated", "The arena has been created!");
