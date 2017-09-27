@@ -2,6 +2,7 @@ package org.aurora.tag.listener;
 
 import java.util.Optional;
 
+import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.game.TagArena;
@@ -92,8 +93,7 @@ public class PlayerListener implements Listener {
 										ConfigLoader.getDefault("Tag.Strings.PlayerTagPlayer"),
 										tagged.getName(),
 										tagger.getName()));
-						MethodBypass.legalWarp(ConfigLoader.getDefault(
-								"Tag.Arena." + GameCenter.getArena(tagged).getArena() + ".Warps.Rip"),
+						MethodBypass.legalWarp(ArenaConfig.getDefault("Arena." + GameCenter.getArena(tagged).getArena() + ".Warps.Rip"),
 								tagged,
 								taggedArena);
 						
@@ -130,8 +130,7 @@ public class PlayerListener implements Listener {
 					// Prevent the player from dying, warp them to rip, heal them and send them a message
 					// finally add them to rip list and tell all players that cause of death.
 					event.setCancelled(true);
-					MethodBypass.legalWarp(ConfigLoader.getDefault(
-							"Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Rip"),
+					MethodBypass.legalWarp(ArenaConfig.getDefault("Arena." + GameCenter.getArena(player).getArena() + ".Warps.Rip"),
 							player,
 							GameCenter.getArena(player));
 					Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),
@@ -194,10 +193,10 @@ public class PlayerListener implements Listener {
 			if(clickedBlock.getState() instanceof Sign) {
 				Sign sign = (Sign) clickedBlock.getState();
 				
-				if(signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToJoin"), sign))
+				if(signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToJoin"), sign)) {
 					if(!sign.getLine(1).equals(""))
 						event.getPlayer().performCommand("tag join " + sign.getLine(1).toLowerCase());
-				else if(signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToLeave"), sign))
+				} else if(signContainsString(ConfigLoader.getDefault("Tag.Sign.SignToLeave"), sign))
 					event.getPlayer().performCommand("tag leave");
 				
 				if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
