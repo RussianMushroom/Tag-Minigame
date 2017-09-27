@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ThreadLocalRandom;
 
+import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
@@ -35,7 +36,7 @@ public class TagArena {
 	
 	public TagArena(String arena) {
 		this.arena = arena;
-		this.MAX_PLAYERS = Integer.parseInt(ConfigLoader.getDefault("Tag.Arena." + this.arena + ".MaxPlayers"));
+		this.MAX_PLAYERS = Integer.parseInt(ArenaConfig.getDefault("Arena." + this.arena + ".MaxPlayers"));
 	}
 	
 	public boolean addPlayer(Player player) {
@@ -88,7 +89,7 @@ public class TagArena {
 		// warp all player to the lobby
 		joinedPlayers.forEach(player -> {
 			MethodBypass.legalWarp(
-					ConfigLoader.getDefault("Tag.Arena." + arena.toLowerCase() + ".Warps.Lobby"),
+					ArenaConfig.getDefault("Arena." + arena.toLowerCase() + ".Warps.Lobby"),
 					player, this);
 		});
 		votedPlayers.clear();
@@ -116,17 +117,18 @@ public class TagArena {
 	}
 	
 	public void removePlayer(Player player) {
+		// reset inventory
+		InventoryManager.restoreInv(player, this);
+		// warp player that left to spawn
+		MethodBypass.legalWarp("spawn", player, this);
+		
 		joinedPlayers.remove(player);
 		
 		if(votedPlayers.contains(player))
 			votedPlayers.remove(player);
 		if(ripPlayers.contains(player))
 			ripPlayers.remove(player);
-		
-		// reset inventory
-		InventoryManager.restoreInv(player, this);
-		// warp player that left to spawn
-		MethodBypass.legalWarp("spawn", player, this);
+
 		
 		// Check if game is active and is last person to leave
 		if(isActive && votedPlayers.isEmpty())
