@@ -15,6 +15,7 @@ public class ConfigFile {
 	private static final Path CONFIG_PATH = new File("plugins/Tag/").toPath();
 	public static final String CONFIG = "config.yml";
 	public static final String LEADERBOARD = "leaderboard.yml";
+	public static final String ARENA = "arena.yml";
 	
 	public static Path getConfigPath() {
 		if(!CONFIG_PATH.toFile().exists())
@@ -33,4 +34,7 @@ public class ConfigFile {
 		return new File(CONFIG_PATH + File.separator + LEADERBOARD);
 	}
 	
+	public static File getArenaFile()  {
+		return new File(CONFIG_PATH + File.separator + ARENA);
+	}
 }
