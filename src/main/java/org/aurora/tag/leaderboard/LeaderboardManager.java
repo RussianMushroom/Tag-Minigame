@@ -86,7 +86,7 @@ public class LeaderboardManager {
 		}
 	}
 	
-	private static Optional<int[]> getPlayerStat(Player player) {
+	public static Optional<int[]> getPlayerStat(Player player) {
 		try {
 			yConfig.load(ConfigFile.getLeaderboardFile());
 			return yConfig.contains("Leaderboard." + player.getName()) ? 
