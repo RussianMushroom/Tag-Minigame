@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.leaderboard.LeaderboardManager;
 import org.aurora.tag.util.GeneralMethods;
@@ -15,6 +16,8 @@ import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+
+import io.github.russianmushroom.rewardlib.reward.ApplyReward;
 
 /**
  * 
@@ -34,9 +37,15 @@ public class GameCenter {
 		// Warp everyone to the arena
 		arena.getVotedPlayers().forEach(player -> {
 			MethodBypass.legalWarp(
-					ConfigLoader.getDefault("Tag.Arena." + GameCenter.getArena(player).getArena() + ".Warps.Arena"), 
+					ArenaConfig.getDefault("Arena." + GameCenter.getArena(player).getArena() + ".Warps.Arena"), 
 					player, 
 					arena);
+			if(getRelativeReward(arena.getVotedPlayers().size(), arena) 
+					> ConfigLoader.getFileConfig().getInt("Tag.Rewards.Money")) {
+				player.sendMessage(ChatColor.GOLD
+						+ String.format(ConfigLoader.getDefault("Tag.Strings.NotifyAmountToWin"),
+								getRelativeReward(arena.getVotedPlayers().size(), arena)));
+			}
 		}); 
 		
 		// Clear all inventories and apply items 
@@ -67,6 +76,7 @@ public class GameCenter {
 			arena.deactivateWithVote();
 		else
 			arena.deactivate();
+		
 		arena.disableTimers();
 	}
 	
@@ -79,7 +89,7 @@ public class GameCenter {
 	public static void registerWinner(Player player, TagArena arena) {
 		// Update leaderboard
 		LeaderboardManager.add(player, true);
-		giveMoney(player);
+		giveMoney(player, arena.getVotedPlayers().size(), arena);
 		addCredits(player);
 		
 		// Broadcast the player's win to the server
@@ -90,22 +100,52 @@ public class GameCenter {
 		stop(arena, true);
 	}
 
-	private static void giveMoney(Player player) {
+	private static void giveMoney(Player player, int amountOfPlayers, TagArena arena) {
 		int moneyReward = Integer.parseInt(ConfigLoader.getDefault("Tag.Rewards.Money"));
+		int relativeReward = getRelativeReward(amountOfPlayers, arena);
 		
 		if(Bukkit.getServer().getPluginManager().getPlugin("Essentials") != null) {
-			Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),
-				"economy give " + player.getName() + " " + moneyReward);
-			player.sendMessage(ChatColor.GOLD
-				+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerReceiveMoney"), moneyReward));
+			if(ConfigLoader.getFileConfig().getBoolean("Tag.Rewards.AllowRewardsRelativeToPlayerAmount")) {
+				Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),
+						"economy give " + player.getName() + " " + relativeReward);
+				player.sendMessage(ChatColor.GOLD
+					+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerReceiveMoney"), moneyReward));
+			} else {
+				Bukkit.getServer().dispatchCommand(Bukkit.getServer().getConsoleSender(),
+						"economy give " + player.getName() + " " + moneyReward);
+				player.sendMessage(ChatColor.GOLD
+					+ String.format(ConfigLoader.getDefault("Tag.Strings.PlayerReceiveMoney"), moneyReward));
+			}	
 		}	
 	}
 	
+	public static int getRelativeReward(int amountOfPlayers, TagArena arena) {
+		int baseAmount = ConfigLoader.getFileConfig().getInt("Tag.Rewards.Money");
+		int totalWins = 0,
+			totalLosses = 0;
+		// Fallback returnAmount is 3
+		int returnAmount = 0;
+		
+		for(Player player : arena.getVotedPlayers()) {
+			if(LeaderboardManager.getPlayerStat(player).isPresent()) {
+				int[] winsLosses = LeaderboardManager.getPlayerStat(player).get();
+				totalWins += winsLosses[0];
+				totalLosses += winsLosses[1];	
+			}
+		}
+		
+		returnAmount = 
+				(int) (((baseAmount + amountOfPlayers) 
+						* Math.pow(Math.E, ((totalWins / 100) - (totalLosses / 100)))) + 3);
+		
+		return returnAmount < 3 ? 3 : returnAmount;
+	}
+
 	private static void addCredits(Player player) {
 		if(!Bukkit.getServer().getPluginManager().isPluginEnabled("RewardLib"))
 			Bukkit.getServer().getLogger().warning("[Tag] RewardLib was not detected, please enable/add this plugin in order to enable item rewards.");
 		else {
-			// Implement Credit.addCredit(plugin, player);
+			ApplyReward.apply(player, ConfigLoader.getFileConfig().getInt("Tag.Rewards.AmountOfCreditsPerGame"));
 		}
 			
 	}
@@ -175,7 +215,7 @@ public class GameCenter {
 	
 	public static List<String> availableArenas() {
 		try {
-			return ConfigLoader.getFileConfig().getConfigurationSection("Tag.Arena")
+			return ArenaConfig.getYamlConfig().getConfigurationSection("Arena")
 					.getKeys(false)
 					.stream()
 					.collect(Collectors.toList());
@@ -186,9 +226,15 @@ public class GameCenter {
 	}
 	
 	public static boolean arenaHasAllArenasSet(TagArena arena) {
-		Set<String> subkeys = ConfigLoader
-				.getFileConfig().getConfigurationSection("Tag.Arena." + arena.getArena() + ".Warps").getKeys(false);
-		
-		return subkeys.contains("Arena") && subkeys.contains("Rip") && subkeys.contains("Lobby");
+		try {
+			Set<String> subkeys = ArenaConfig
+					.getYamlConfig()
+					.getConfigurationSection("Arena." + arena.getArena() + ".Warps")
+					.getKeys(false);
+			
+			return subkeys.contains("Arena") && subkeys.contains("Rip") && subkeys.contains("Lobby");
+		} catch (NullPointerException e) {
+			return false;
+		}
 	}
 }
