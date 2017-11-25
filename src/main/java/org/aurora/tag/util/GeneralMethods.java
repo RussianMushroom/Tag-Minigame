@@ -2,6 +2,7 @@ package org.aurora.tag.util;
 
 import org.aurora.tag.game.TagArena;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 
 /**
  * 
@@ -27,6 +28,11 @@ public class GeneralMethods {
 		} catch (NumberFormatException e) {
 			return false;
 		}
+	}
+	
+	public static void heal(Player player) {
+		player.setHealth(20);
+		player.getActivePotionEffects().clear();
 	}
 	
 }

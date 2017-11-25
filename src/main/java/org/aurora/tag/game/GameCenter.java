@@ -9,9 +9,10 @@ import java.util.stream.Collectors;
 
 import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
-import org.aurora.tag.leaderboard.LeaderboardManager;
+import org.aurora.tag.manager.InventoryManager;
+import org.aurora.tag.manager.LeaderboardManager;
+import org.aurora.tag.scoreboard.CreateScoreboard;
 import org.aurora.tag.util.GeneralMethods;
-import org.aurora.tag.util.InventoryManager;
 import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -58,34 +59,6 @@ public class GameCenter {
 		arena.startGraceTimer();
 	}
 	
-	public static void stop(TagArena arena, boolean allowRejoinBySign) {
-		if(arena.isActive()) {
-			Bukkit.broadcastMessage(ChatColor.GOLD
-					+ String.format(
-							ConfigLoader.getDefault("Tag.Strings.GameStop"),
-							GeneralMethods.toProperCase(arena.getArena())));
-			
-			forceStop(arena, allowRejoinBySign);
-		}
-	}
-	
-	public static void forceStop(TagArena arena, boolean allowRejoinBySign) {
-		// Clear inventories and set game to inactive
-		InventoryManager.clearPlayerInventory(true, arena);
-		if(allowRejoinBySign)
-			arena.deactivateWithVote();
-		else
-			arena.deactivate();
-		
-		arena.disableTimers();
-	}
-	
-	public static void stopAll() {
-		activeGames.forEach(tagArena -> {
-			forceStop(tagArena, false);
-		});
-	}
-	
 	public static void registerWinner(Player player, TagArena arena) {
 		// Update leaderboard
 		LeaderboardManager.add(player, true);
@@ -98,6 +71,36 @@ public class GameCenter {
 		
 		// Reopen the game however dont remove players from Joined list so that they can rejoin by clicking the sign
 		stop(arena, true);
+	}
+	
+	public static void stop(TagArena arena, boolean allowRejoinBySign) {
+		if(arena.isActive()) {
+			Bukkit.broadcastMessage(ChatColor.GOLD
+					+ String.format(
+							ConfigLoader.getDefault("Tag.Strings.GameStop"),
+							GeneralMethods.toProperCase(arena.getArena())));
+			
+			forceStop(arena, allowRejoinBySign);
+		}
+	}
+	
+	public static void forceStop(TagArena arena, boolean allowRejoinBySign) {
+		// Clear inventories and set gamemode to the one in the config and set game to inactive
+		InventoryManager.clearPlayerInventory(true, arena);
+		// Remove scoreboards
+		CreateScoreboard.removeScoreboardFromArena(arena);
+		
+		if(allowRejoinBySign)
+			arena.deactivateWithVote();
+		else arena.deactivate();
+		
+		arena.disableTimers();
+	}
+	
+	public static void stopAll() {
+		activeGames.forEach(tagArena -> {
+			forceStop(tagArena, false);
+		});
 	}
 
 	private static void giveMoney(Player player, int amountOfPlayers, TagArena arena) {

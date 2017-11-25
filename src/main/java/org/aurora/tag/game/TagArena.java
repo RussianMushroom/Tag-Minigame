@@ -8,12 +8,13 @@ import java.util.concurrent.ThreadLocalRandom;
 
 import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
-import org.aurora.tag.util.InventoryManager;
+import org.aurora.tag.manager.InventoryManager;
+import org.aurora.tag.scoreboard.CreateScoreboard;
 import org.aurora.tag.util.MethodBypass;
 import org.aurora.tag.util.Timer;
+import org.bukkit.GameMode;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 
 /**
  * Deals with elements necessary for the Tag minigame.
@@ -28,11 +29,19 @@ public class TagArena {
 	private Map<Player, ItemStack[]> playerInv = new HashMap<>();
 	private boolean isActive = false;
 	private boolean canWarp = false;
+	private boolean canChangeGameMode = false;
 	private boolean isGrace = true;
 	private boolean upgradeIsActive = true;
-	private BukkitTask upgradeTask;
-	private BukkitTask graceTask;
+	private final Timer timer = new Timer();
 	private String arena;
+	private final GameMode LOBBY_GAMEMODE = GameMode.valueOf(
+			(ConfigLoader.getFileConfig() != null
+			? ConfigLoader.getDefault("Tag.Options.GameModeAfterFinishGame")
+			: "SURVIVAL"));
+	private final GameMode RIP_GAMEMODE = GameMode.valueOf(
+			(ConfigLoader.getFileConfig() != null
+			? ConfigLoader.getDefault("Tag.Options.GameModeWhileInRIP")
+			: "SPECTATOR"));
 	
 	public TagArena(String arena) {
 		this.arena = arena;
@@ -42,9 +51,8 @@ public class TagArena {
 	public boolean addPlayer(Player player) {
 		if(!(joinedPlayers.size() + 1 > MAX_PLAYERS) && !isActive) {
 			joinedPlayers.add(player);
-		}
-		else
-			return false;
+		} else return false;
+		
 		return true;
 	}
 	
@@ -53,24 +61,26 @@ public class TagArena {
 			votedPlayers.add(player);
 			return true;
 		}
+		
 		return false;
 	}
 	
 	public void addRip(Player player) {
-		if(!ripPlayers.contains(player))
+		if(!ripPlayers.contains(player)) {
 			ripPlayers.add(player);
-		// Check if all players are in rip
-		// if so, end the game without a winner
-		if(votedPlayers.size() == ripPlayers.size())
-			GameCenter.stop(this, true);
+			MethodBypass.legalChangeGameMode(RIP_GAMEMODE, player, this);
+		}
 	}
 	
 	public void prohibitWarp() {
 		canWarp = false;
 	}
 	
-	// Switch the Tag game on and off
+	public void prohibitGameModeChange() {
+		canChangeGameMode = false;
+	}
 	
+	// Switch the Tag game on and off
 	public void activate() {
 		isActive = true;
 	}
@@ -79,6 +89,7 @@ public class TagArena {
 		// warp all player to spawn
 		joinedPlayers.forEach(player -> {
 			MethodBypass.legalWarp("spawn", player, this);
+			MethodBypass.legalChangeGameMode(LOBBY_GAMEMODE, player, this);
 		});
 		
 		clearAll();
@@ -91,6 +102,8 @@ public class TagArena {
 			MethodBypass.legalWarp(
 					ArenaConfig.getDefault("Arena." + arena.toLowerCase() + ".Warps.Lobby"),
 					player, this);
+
+			MethodBypass.legalChangeGameMode(LOBBY_GAMEMODE, player, this);
 		});
 		votedPlayers.clear();
 		ripPlayers.clear();
@@ -104,8 +117,6 @@ public class TagArena {
 		joinedPlayers.clear();
 		votedPlayers.clear();
 		ripPlayers.clear();
-		// Clear map with player's inventory
-		clearPlayerInv();
 	}
 	
 	public void checkStartTag() {
@@ -121,6 +132,8 @@ public class TagArena {
 		InventoryManager.restoreInv(player, this);
 		// warp player that left to spawn
 		MethodBypass.legalWarp("spawn", player, this);
+		// remove scoreboard from player
+		CreateScoreboard.removeScoreboardFromPlayer(player);
 		
 		joinedPlayers.remove(player);
 		
@@ -129,7 +142,7 @@ public class TagArena {
 		if(ripPlayers.contains(player))
 			ripPlayers.remove(player);
 
-		
+		CreateScoreboard.updateScoreboard(this);
 		// Check if game is active and is last person to leave
 		if(isActive && votedPlayers.isEmpty())
 			GameCenter.stop(this, false);
@@ -154,20 +167,18 @@ public class TagArena {
 	}
 	
 	public void disableTimers() {
-		if(upgradeTask != null)
-			upgradeTask.cancel();
-		if(graceTask != null)
-			graceTask.cancel();
+		timer.stopGraceTimer();
+		timer.stopUpgradeTimer();
+		timer.stopDisplayTimeLeft();
 	}
 	
 	public void startGraceTimer() {
-		Timer graceTimer = new Timer();
-		graceTimer.startGraceTimer(graceTask, this);
+		timer.createGraceTimer(this);
+		timer.startTimeLeft(this);
 	}
 	
 	public void startUpgradeTimer() {
-		Timer upgradeTimer = new Timer();
-		upgradeTimer.startUpgradeTimer(upgradeTask, this.arena);
+		timer.createUpgradeTimer(this);
 	}
 	
 	public void delayStart() {
@@ -202,8 +213,16 @@ public class TagArena {
 		return canWarp;
 	}
 	
+	public boolean canChangeGameMode() {
+		return canChangeGameMode;
+	}
+	
 	public String getArena() {
 		return arena;
+	}
+	
+	public boolean arenaIsEmpty() {
+		return votedPlayers.size() == ripPlayers.size();
 	}
 	
 	public Map<Player, ItemStack[]> getPlayerInv() {
@@ -234,12 +253,12 @@ public class TagArena {
 		this.upgradeIsActive = upgradeIsActive;
 	}
 	
-	public boolean isCanWarp() {
-		return canWarp;
-	}
-	
 	public void setCanWarp(boolean canWarp) {
 		this.canWarp = canWarp;
+	}
+	
+	public void setCanChangeGameMode(boolean canChangeGameMode) {
+		this.canChangeGameMode = canChangeGameMode;
 	}
 	
 }

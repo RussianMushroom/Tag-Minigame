@@ -2,11 +2,11 @@ package org.aurora.tag.util;
 
 import org.aurora.tag.game.TagArena;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 
 /**
- * 
  * @author RussianMushroom
  */
 public class MethodBypass {
@@ -37,4 +37,10 @@ public class MethodBypass {
 		}
 	}
 
+	public static void legalChangeGameMode(GameMode mode, Player player, TagArena arena) {
+		if(!arena.canChangeGameMode())
+			arena.setCanChangeGameMode(true);
+			
+		player.setGameMode(mode);
+	}
 }

@@ -18,10 +18,10 @@ public class TagTabCompletion {
 
 	/**
 	 * Only have tab completion for the following commands: 
-	 *"/tag start [arena name]"
-	 *"/tag join [arena name]"
-	 *"/tag stop [arena name]"
-	 *"/tag status [arena name]"
+	 * "/tag start [arena name]"
+	 * "/tag join [arena name]"
+	 * "/tag stop [arena name]"
+	 * "/tag status [arena name]"
 	 * @param sender
 	 * @param alias
 	 * @param args

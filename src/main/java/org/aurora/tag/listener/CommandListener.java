@@ -18,7 +18,7 @@ public class CommandListener implements Listener{
 		
 		// Blanket check: check if player has joined any arena
 		if(GameCenter.arenaContainsPlayerAsType("joined", event.getPlayer())) {
-			if(pManager.isPluginEnabled("Essentials")) 
+			if(pManager.getPlugin("Essentials").isEnabled()) 
 				prohibitEssentials(command, event);
 		}
 	}

@@ -10,8 +10,10 @@ import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.listener.CommandListener;
 import org.aurora.tag.listener.PlayerListener;
+import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 
 /**
@@ -29,8 +31,6 @@ public class Tag extends JavaPlugin {
 
 		super.onEnable();
 	}
-	
-	
 	
 	@Override
 	public void onDisable() {
@@ -54,5 +54,7 @@ public class Tag extends JavaPlugin {
 			return new ArrayList<>();
 	}
 
-	
+	public static Plugin getPlugin() {
+		return Bukkit.getPluginManager().getPlugin("Tag");
+	}
 }

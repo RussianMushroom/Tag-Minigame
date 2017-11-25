@@ -1,4 +1,5 @@
 package org.aurora.tag.command;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -7,7 +8,7 @@ import org.aurora.tag.config.ArenaConfig;
 import org.aurora.tag.config.ConfigLoader;
 import org.aurora.tag.game.GameCenter;
 import org.aurora.tag.game.TagArena;
-import org.aurora.tag.leaderboard.LeaderboardManager;
+import org.aurora.tag.manager.LeaderboardManager;
 import org.aurora.tag.util.GeneralMethods;
 import org.aurora.tag.util.MethodBypass;
 import org.bukkit.Bukkit;
@@ -277,18 +278,6 @@ public class TagCommand {
 									.tooltip(getJoinedPlayers(arena))
 									.send(sender);
 								
-								/*
-								sender.sendMessage(ChatColor.AQUA 
-										+ String.format(
-										"%s%s%s%s%s%s",
-										"===============================\n",
-										"  Tag-Minigame " + GeneralMethods.toProperCase(args[1]) + ": \n",
-										"===============================\n",
-										"  Players joined: " + arena.getJoinedPlayers().size() + "/" + arena.getMaxPlayers() + "\n",
-										"  Status: " + (arena.isActive() ? ChatColor.RED + "ACTIVE\n" : ChatColor.GREEN + "OPEN\n"),
-										ChatColor.AQUA + "===============================\n"
-										));
-								*/
 							} else {
 								String maxPlayers = ArenaConfig.getDefault("Arena." + args[1] + ".MaxPlayers");
 								
@@ -322,7 +311,7 @@ public class TagCommand {
 			.map(player -> player.getName())
 			.sorted()
 			.forEach(player -> {
-				sBuilder.append("- " + player + "\n");
+				sBuilder.append(ChatColor.YELLOW + "- " + player + "\n");
 			});
 		
 		return sBuilder.toString();

@@ -55,6 +55,8 @@ public class ConfigLoader {
     
     // Misc
     fConfig.set("Tag.Options.AllowHolographicCountdown", Boolean.valueOf(false));
+    fConfig.set("Tag.Options.GameModeAfterFinishGame", "SURVIVAL");
+    fConfig.set("Tag.Options.GameModeWhileInRIP", "SPECTATOR");
     
     // Externalise strings
     fConfig.set("Tag.Strings.NotifyPlayersGameStart", "This game of Tag is starting in %d seconds!");
@@ -96,8 +98,8 @@ public class ConfigLoader {
     fConfig.set("Tag.Strings.SetSyntax", "Invalid syntax: /tag set [arena | lobby | rip] [arena name].");
     fConfig.set("Tag.Strings.JoinSyntax", "Invalid syntax: /tag join [arena name].");
     fConfig.set("Tag.Strings.CreateSyntax", "Invalid syntax: /tag createarena [arena name].");
-    fConfig.set("Tag.Strings.StartSyntax", "Invalid Syntax: /tag start [arena name]");
-    fConfig.set("Tag.Strings.StatusSyntax", "Invalid Syntax: /tag status [arena name]");
+    fConfig.set("Tag.Strings.StartSyntax", "Invalid syntax: /tag start [arena name]");
+    fConfig.set("Tag.Strings.StatusSyntax", "Invalid syntax: /tag status [arena name]");
     fConfig.set("Tag.Strings.PlayerScore", "%s has won %d time(s) and lost %s time(s)!");
     fConfig.set("Tag.Strings.PlayerNoScore", "%s has not played a game of Tag before!");
     fConfig.set("Tag.Strings.IllegalCommandUsed", "You are not allowed to use this command while in a game of Tag!");
